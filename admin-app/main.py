@@ -49,10 +49,31 @@ def create_student(nom, prenom, email="", jours=90):
     return rows[0] if rows else {"code_reference": code}
 
 def prolonger(student_id, jours=30):
+    """Prolonge la validité du code de ref de `jours` jours."""
     cur = api("students", params={"id": f"eq.{student_id}", "select": "date_expiration_code"})[0]
-    base = cur.get("date_expiration_code") or datetime.datetime.utcnow().isoformat()
-    from dateutil.parser import parse as _p  # fallback ci-dessous si absent
-    return base
+    base_str = cur.get("date_expiration_code") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    base = datetime.datetime.fromisoformat(base_str.replace("Z", "+00:00"))
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if base < now:
+        base = now
+    new_exp = (base + datetime.timedelta(days=jours)).isoformat()
+    return api("students", method="PATCH", body={"date_expiration_code": new_exp},
+               params={"id": f"eq.{student_id}"})
+
+def suspendre(student_id):
+    """Suspend le code de ref : l'élève ne peut plus se connecter."""
+    return api("students", method="PATCH", body={"statut_actif": False},
+               params={"id": f"eq.{student_id}"})
+
+def reprendre(student_id):
+    """Réactive un code suspendu."""
+    return api("students", method="PATCH", body={"statut_actif": True},
+               params={"id": f"eq.{student_id}"})
+
+def regen_auto(student_id):
+    """Régénère automatiquement un nouveau code (jamais de saisie manuelle)."""
+    return api("students", method="PATCH", body={"code_reference": gen_code()},
+               params={"id": f"eq.{student_id}"})
 
 try:
     from kivy.app import App

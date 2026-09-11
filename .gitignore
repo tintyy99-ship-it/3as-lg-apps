@@ -1,4 +1,7 @@
 .env
+.env.*
+supabase-config.js
+**/supabase-config.js
 __pycache__/
 *.pyc
 .bin/

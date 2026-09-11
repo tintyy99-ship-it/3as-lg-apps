@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3AS LG Admin</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js" onerror="void 0"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
 body{background:#0f172a;color:#e2e8f0}
@@ -42,10 +43,11 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <div class="stat">Cours<b id="n4">0</b></div>
 </div>
 
-<div class="card"><h3>➕ Nouvel élève (code auto)</h3>
+<div class="card"><h3>➕ Créer compte candidat (code généré auto)</h3>
+<p class="small">Aucun code prêt à l'emploi : le code de référence est généré automatiquement après la création du compte.</p>
 <div class="row"><input id="nom" placeholder="Nom"><input id="prenom" placeholder="Prénom"></div>
 <div class="row"><input id="email" placeholder="Email (opt)"><select id="duree"><option value="30">30 jours</option><option value="90" selected>90 jours</option><option value="180">180 jours</option><option value="365">1 an</option></select></div>
-<button class="green" onclick="createStudent()">Créer + Générer code</button>
+<button class="green" onclick="createStudent()">Créer le compte → Générer code auto</button>
 <p id="newcode"></p>
 </div>
 
@@ -70,11 +72,13 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <script>
 let sb=null,students=[],msgs=[];
 const ADMIN_ID='admin';
+const DEFAULT_SB_URL='https://xvbswwlphdjtviufwcsx.supabase.co';
+const DEFAULT_SB_KEY=''; // clé ANON à coller 1x via ⚙️ (stockée local, jamais commitée)
 const $=id=>document.getElementById(id);
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
 function save(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());init()}
 function init(){
- const u=localStorage.getItem('SB_URL')||'',k=localStorage.getItem('SB_KEY')||'';
+ const u=localStorage.getItem('SB_URL')||DEFAULT_SB_URL,k=localStorage.getItem('SB_KEY')||DEFAULT_SB_KEY;
  $('url').value=u;$('key').value=k;
  if(!u||!k){$('st').textContent='Non configuré';return}
  sb=window.supabase.createClient(u,k);$('st').textContent='Connecté ✅';refresh();
@@ -92,12 +96,14 @@ function render(){
  const q=($('q').value||'').toLowerCase();
  $('tb').innerHTML=students.filter(s=>(s.nom+s.prenom+s.code_reference).toLowerCase().includes(q)).map(s=>`<tr>
  <td>${s.prenom} ${s.nom}</td><td><b>${s.code_reference}</b></td>
- <td>${(s.date_expiration_code||'').slice(0,10)}</td><td>${s.statut_actif?'✅':'❌'}</td>
- <td style="min-width:220px">
+ <td>${(s.date_expiration_code||'').slice(0,10)}</td><td>${s.statut_actif?'✅ actif':'⛔ suspendu'}</td>
+ <td style="min-width:260px">
  <button class="ghost" onclick="prolong('${s.id}',30)">+30j</button>
  <button class="ghost" onclick="prolong('${s.id}',90)">+90j</button>
- <button class="ghost" onclick="toggleAct('${s.id}',${!s.statut_actif})">${s.statut_actif?'Désactiver':'Activer'}</button>
- <button class="red" onclick="regen('${s.id}')">↻ Code</button>
+ ${s.statut_actif
+   ? `<button class="red" onclick="suspendre('${s.id}')">⛔ Suspendre le code</button>`
+   : `<button class="green" onclick="reprendre('${s.id}')">✅ Réactiver le code</button>`}
+ <button class="ghost" onclick="regen('${s.id}')">↻ Régénérer (auto)</button>
  </td></tr>`).join('');
 }
 async function createStudent(){
@@ -110,6 +116,8 @@ async function createStudent(){
  $('nom').value=$('prenom').value=$('email').value='';refresh();
 }
 async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);refresh()}
+async function suspendre(id){if(!confirm('Suspendre ce code ? L’élève ne pourra plus se connecter.'))return;await sb.from('students').update({statut_actif:false}).eq('id',id);refresh()}
+async function reprendre(id){await sb.from('students').update({statut_actif:true}).eq('id',id);refresh()}
 async function toggleAct(id,v){await sb.from('students').update({statut_actif:v}).eq('id',id);refresh()}
 async function regen(id){const c=genCode();await sb.from('students').update({code_reference:c}).eq('id',id);alert('Nouveau code: '+c);refresh()}
 async function loadMsgs(){const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(200);msgs=(data||[]).reverse();$('n3').textContent=data?.length||0;loadConv()}

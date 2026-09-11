@@ -44,7 +44,7 @@ def login_code(code):
         return None, "Code invalide."
     s = rows[0]
     if not s.get("statut_actif"):
-        return None, "Compte désactivé."
+        return None, "⛔ Code suspendu par l'admin. Contacte le support Telegram."
     exp = s.get("date_expiration_code")
     if exp and exp[:10] < datetime.date.today().isoformat():
         return None, "Code expiré. Contacte l'admin via " + TELEGRAM
