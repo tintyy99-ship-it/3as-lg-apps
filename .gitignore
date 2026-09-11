@@ -2,6 +2,11 @@
 .env.*
 supabase-config.js
 **/supabase-config.js
+# assets Android générés au build (voir android/prepare_assets.sh)
+android/eleve/src/main/assets/www/index.html
+android/eleve/src/main/assets/www/supabase-config.js
+android/admin/src/main/assets/www/index.html
+android/admin/src/main/assets/www/supabase-config.js
 __pycache__/
 *.pyc
 .bin/

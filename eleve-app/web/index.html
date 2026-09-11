@@ -90,7 +90,7 @@ function cfg(){const w=(window.SB_CONFIG||{});return {url:w.SUPABASE_URL||localS
 function openConfig(){$('cfg').classList.toggle('hidden');$('url').value=cfg().url;$('key').value=cfg().key}
 function saveConfig(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());initSB();alert('Config enregistrée')}
 function $(id){return document.getElementById(id)}
-function initSB(){const c=cfg();if(c.url&&c.key){sb=window.supabase.createClient(c.url,c.key)}}
+function initSB(){try{const c=cfg();if(c.url&&c.key&&window.supabase){sb=window.supabase.createClient(c.url,c.key)}}catch(e){sb=null}}
 initSB();
 const sess=localStorage.getItem('3as_student');if(sess){try{me=JSON.parse(sess);showApp()}catch(e){}}
 
@@ -110,14 +110,17 @@ function showApp(){
  $('hello').textContent=`Salut ${me.prenom} ${me.nom} 👋`;
  $('exp').textContent='Expire: '+(me.date_expiration_code||'—').slice(0,10);
  $('profil').innerHTML=`<p><b>${me.prenom} ${me.nom}</b><br>${me.email||''}<br>Code: <b>${me.code_reference}</b><br>Expire: ${me.date_expiration_code||'—'}</p>`;
- loadCourses();loadMsgs();subscribe();
+ loadCourses();try{if(sb){loadMsgs();subscribe()}}catch(e){}
 }
 function logout(){localStorage.removeItem('3as_student');location.reload()}
 function tab(t){['cours','msg','compte'].forEach(x=>{$('tab-'+x).classList.toggle('hidden',x!==t)});['b1','b2','b3'].forEach(b=>$(b).classList.remove('active'));if(t==='cours')$('b1').classList.add('active');if(t==='msg')$('b2').classList.add('active');if(t==='compte')$('b3').classList.add('active')}
 
 async function loadCourses(){
- const {data}=await sb.from('courses').select('*').order('matiere').order('ordre');
- allCourses=data&&data.length?data:FALLBACK;
+ try{
+  if(!sb||!window.supabase) throw 0;
+  const {data}=await sb.from('courses').select('*').order('matiere').order('ordre');
+  allCourses=data&&data.length?data:FALLBACK;
+ }catch(e){ allCourses=FALLBACK; }
  const mats=[...new Set(allCourses.map(c=>c.matiere))];
  $('filtre').innerHTML='<option value="">Toutes</option>'+mats.map(m=>`<option>${m}</option>`).join('');
  renderCourses();
@@ -137,7 +140,8 @@ function renderMsgs(list){
  $('msgs').scrollTop=99999;
 }
 async function send(){
- const t=$('txt').value.trim();if(!t)return;$('txt').value='';
+ const t=$('txt').value.trim();if(!t)return;if(!sb)return alert('Hors ligne : reconnecte-toi.');
+ $('txt').value='';
  await sb.from('messages').insert({sender_id:me.id,receiver_id:ADMIN_ID,contenu:t,student_id:me.id});
  loadMsgs();
 }
