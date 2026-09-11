@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#1e40af">
+<title>3AS LG Élève</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+body{background:#f1f5f9;color:#0f172a}
+header{background:#1e40af;color:#fff;padding:14px;text-align:center;position:sticky;top:0;z-index:10}
+.card{background:#fff;border-radius:14px;padding:16px;margin:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+input,select,textarea,button{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #cbd5e1;font-size:16px}
+button{background:#1e40af;color:#fff;border:none;font-weight:600;cursor:pointer}
+button.ghost{background:#e2e8f0;color:#0f172a}
+button.telegram{background:#229ED9}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e2e8f0}
+nav button{background:none;color:#475569;border-radius:0;padding:14px 4px;font-size:13px}
+nav button.active{color:#1e40af;font-weight:800}
+main{padding-bottom:80px;max-width:700px;margin:auto}
+.badge{display:inline-block;background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:12px}
+.msg{padding:8px 12px;border-radius:12px;margin:6px 0;max-width:85%}
+.me{background:#dbeafe;margin-left:auto}
+.them{background:#f1f5f9}
+.matiere{border-left:5px solid #1e40af}
+.small{font-size:13px;color:#64748b}
+.hidden{display:none}
+.row{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<header><h2>📚 3AS LG — Espace Élève</h2></header>
+<main>
+<!-- LOGIN -->
+<div id="login" class="card">
+<h3>Connexion</h3>
+<p class="small">Ton <b>code de référence</b> est fourni par l'administrateur.<br>Pour les cours, explications ou obtenir un code, contacte le support :</p>
+<a href="https://t.me/Roqaya_2328" target="_blank"><button class="telegram">💬 Support Telegram : @Roqaya_2328</button></a>
+<input id="code" placeholder="Ex : 3AS-X7K9P2" autocapitalize="characters">
+<button onclick="login()">Se connecter</button>
+<button class="ghost" onclick="openConfig()">⚙️ Config Supabase</button>
+<p id="loginErr" class="small" style="color:red"></p>
+<div id="cfg" class="hidden">
+<input id="url" placeholder="SUPABASE_URL">
+<input id="key" placeholder="SUPABASE_ANON_KEY">
+<button onclick="saveConfig()">Enregistrer</button>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+<div class="card"><span id="hello"></span> <span class="badge" id="exp"></span>
+<button class="ghost" onclick="logout()">Déconnexion</button></div>
+
+<div id="tab-cours">
+<div class="card"><h3>Matières 3AS LG</h3>
+<select id="filtre" onchange="renderCourses()"><option value="">Toutes</option></select>
+<div id="courses"></div></div>
+</div>
+
+<div id="tab-msg" class="hidden">
+<div class="card"><h3>💬 Messagerie Admin</h3>
+<div id="msgs" style="max-height:350px;overflow:auto"></div>
+<div class="row"><input id="txt" placeholder="Écris à l'admin..."><button style="width:90px" onclick="send()">➤</button></div>
+</div>
+</div>
+
+<div id="tab-compte" class="hidden">
+<div class="card"><h3>Mon compte</h3><div id="profil"></div>
+<a href="https://t.me/Roqaya_2328" target="_blank"><button class="telegram">Contacter support Telegram</button></a>
+</div>
+</div>
+</div>
+</main>
+
+<nav id="navbar" class="hidden">
+<button id="b1" class="active" onclick="tab('cours')">📖 Cours</button>
+<button id="b2" onclick="tab('msg')">💬 Messages</button>
+<button id="b3" onclick="tab('compte')">👤 Compte</button>
+</nav>
+
+<script>
+let sb=null, me=null, allCourses=[];
+const ADMIN_ID='admin';
+function cfg(){return {url:localStorage.getItem('SB_URL')||'',key:localStorage.getItem('SB_KEY')||''}}
+function openConfig(){$('cfg').classList.toggle('hidden');$('url').value=cfg().url;$('key').value=cfg().key}
+function saveConfig(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());initSB();alert('Config enregistrée')}
+function $(id){return document.getElementById(id)}
+function initSB(){const c=cfg();if(c.url&&c.key){sb=window.supabase.createClient(c.url,c.key)}}
+initSB();
+const sess=localStorage.getItem('3as_student');if(sess){try{me=JSON.parse(sess);showApp()}catch(e){}}
+
+async function login(){
+ if(!sb)return $('loginErr').textContent='Configure Supabase d’abord (⚙️).';
+ const code=$('code').value.trim().toUpperCase();
+ if(!code)return $('loginErr').textContent='Entre ton code.';
+ const {data,error}=await sb.from('students').select('*').eq('code_reference',code).single();
+ if(error||!data)return $('loginErr').textContent='Code invalide.';
+ if(!data.statut_actif)return $('loginErr').textContent='Compte désactivé. Contacte l’admin.';
+ if(data.date_expiration_code&&new Date(data.date_expiration_code)<new Date())
+   return $('loginErr').textContent='Code expiré. Demande une prolongation via Telegram.';
+ me=data;localStorage.setItem('3as_student',JSON.stringify(me));showApp();
+}
+function showApp(){
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');$('navbar').classList.remove('hidden');
+ $('hello').textContent=`Salut ${me.prenom} ${me.nom} 👋`;
+ $('exp').textContent='Expire: '+(me.date_expiration_code||'—').slice(0,10);
+ $('profil').innerHTML=`<p><b>${me.prenom} ${me.nom}</b><br>${me.email||''}<br>Code: <b>${me.code_reference}</b><br>Expire: ${me.date_expiration_code||'—'}</p>`;
+ loadCourses();loadMsgs();subscribe();
+}
+function logout(){localStorage.removeItem('3as_student');location.reload()}
+function tab(t){['cours','msg','compte'].forEach(x=>{$('tab-'+x).classList.toggle('hidden',x!==t)});['b1','b2','b3'].forEach(b=>$(b).classList.remove('active'));if(t==='cours')$('b1').classList.add('active');if(t==='msg')$('b2').classList.add('active');if(t==='compte')$('b3').classList.add('active')}
+
+async function loadCourses(){
+ const {data}=await sb.from('courses').select('*').order('matiere').order('ordre');
+ allCourses=data&&data.length?data:FALLBACK;
+ const mats=[...new Set(allCourses.map(c=>c.matiere))];
+ $('filtre').innerHTML='<option value="">Toutes</option>'+mats.map(m=>`<option>${m}</option>`).join('');
+ renderCourses();
+}
+function renderCourses(){
+ const f=$('filtre').value;
+ const list=allCourses.filter(c=>!f||c.matiere===f);
+ $('courses').innerHTML=list.map(c=>`<div class="card matiere"><b>${c.matiere}</b> <span class="small">${c.niveau||'3AS LG'}</span><h4>${c.chapitre}</h4><p>${c.contenu_cours||''}</p><p class="small">💡 <i>${c.explications_simplifiees||''}</i></p></div>`).join('')||'<p class="small">Aucun cours.</p>';
+}
+async function loadMsgs(){
+ const {data}=await sb.from('messages').select('*').eq('student_id',me.id).order('timestamp');
+ renderMsgs(data||[]);
+ for(const m of (data||[]).filter(m=>m.receiver_id===me.id&&!m.lu)){await sb.from('messages').update({lu:true}).eq('id',m.id)}
+}
+function renderMsgs(list){
+ $('msgs').innerHTML=list.map(m=>`<div class="msg ${m.sender_id===me.id?'me':'them'}">${m.contenu}<br><span class="small">${(m.timestamp||'').slice(0,16)}</span></div>`).join('');
+ $('msgs').scrollTop=99999;
+}
+async function send(){
+ const t=$('txt').value.trim();if(!t)return;$('txt').value='';
+ await sb.from('messages').insert({sender_id:me.id,receiver_id:ADMIN_ID,contenu:t,student_id:me.id});
+ loadMsgs();
+}
+function subscribe(){
+ sb.channel('e'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`student_id=eq.${me.id}`},()=>loadMsgs()).subscribe();
+}
+// Contenu offline si Supabase vide (extrait 3AS LG)
+const FALLBACK=[
+{matiere:'Allemand',niveau:'3AS LG',chapitre:'Passiv',contenu_cours:'werden + Partizip II. Ex: Das Haus wird gebaut.',explications_simplifiees:'werden=être. Repère wird/wurde/worden.'},
+{matiere:'Allemand',niveau:'3AS LG',chapitre:'Konjunktiv II',contenu_cours:'wäre, hätte, würde + Infinitiv.',explications_simplifiees:'Pour dire j’aimerais / si. 3 mots: wäre, hätte, würde.'},
+{matiere:'Allemand',niveau:'3AS LG',chapitre:'Expression écrite BAC',contenu_cours:'Einleitung, Vor/Nachteile, Schluss + connecteurs.',explications_simplifiees:'Plan 3 parties, 10 connecteurs = +points.'},
+{matiere:'Anglais',niveau:'3AS LG',chapitre:'Conditionals',contenu_cours:'Type2: If+past, would+BV. Type3: If+past perfect, would have+PP.',explications_simplifiees:'2=rêve, 3=regret.'},
+{matiere:'Français',niveau:'3AS LG',chapitre:'Argumentation',contenu_cours:'Thèse, arguments, exemples.',explications_simplifiees:'3 arguments = 3 paragraphes.'},
+{matiere:'Histoire-Géo',niveau:'3AS LG',chapitre:'Guerre froide',contenu_cours:'1945-1991 bipolarisation USA/URSS.',explications_simplifiees:'Frise 4 dates.'}
+];
+</script>
+</body>
+</html>

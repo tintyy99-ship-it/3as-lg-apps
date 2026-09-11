@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3AS LG Admin</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{background:#0f172a;color:#e2e8f0}
+header{background:#020617;padding:14px;text-align:center;border-bottom:1px solid #1e293b}
+main{max-width:900px;margin:auto;padding:12px 12px 60px}
+.card{background:#1e293b;border-radius:14px;padding:14px;margin:10px 0}
+input,select,textarea,button{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #334155;font-size:15px;background:#0f172a;color:#fff}
+button{background:#2563eb;border:none;font-weight:700;cursor:pointer}
+button.ghost{background:#334155}button.green{background:#16a34a}button.red{background:#dc2626}
+table{width:100%;font-size:14px;border-collapse:collapse}
+td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.msg{padding:7px 10px;border-radius:10px;margin:5px 0;max-width:85%;font-size:14px}
+.me{background:#2563eb;margin-left:auto}.them{background:#334155}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#020617;border-radius:10px;padding:12px;text-align:center}
+.stat b{font-size:22px;display:block}
+.small{font-size:12px;color:#94a3b8}.hidden{display:none}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header><h2>🛠️ 3AS LG — Admin</h2><p class="small">Gestion élèves • Codes • Cours • Messagerie</p></header>
+<main>
+<div class="card" id="cfgCard">
+<h3>⚙️ Supabase</h3>
+<div class="row"><input id="url" placeholder="SUPABASE_URL"><input id="key" placeholder="ANON_KEY"></div>
+<button onclick="save()">Connecter</button> <span class="small" id="st"></span>
+</div>
+
+<div class="grid">
+<div class="stat">Élèves<b id="n1">0</b></div>
+<div class="stat">Actifs<b id="n2">0</b></div>
+<div class="stat">Messages<b id="n3">0</b></div>
+<div class="stat">Cours<b id="n4">0</b></div>
+</div>
+
+<div class="card"><h3>➕ Nouvel élève (code auto)</h3>
+<div class="row"><input id="nom" placeholder="Nom"><input id="prenom" placeholder="Prénom"></div>
+<div class="row"><input id="email" placeholder="Email (opt)"><select id="duree"><option value="30">30 jours</option><option value="90" selected>90 jours</option><option value="180">180 jours</option><option value="365">1 an</option></select></div>
+<button class="green" onclick="createStudent()">Créer + Générer code</button>
+<p id="newcode"></p>
+</div>
+
+<div class="card"><h3>👥 Élèves</h3><input id="q" placeholder="Rechercher..." oninput="render()">
+<div style="overflow:auto"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>Actif</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+
+<div class="card"><h3>💬 Messagerie</h3>
+<select id="sel" onchange="loadConv()"><option value="">— Choisir élève —</option></select>
+<div id="conv" style="max-height:300px;overflow:auto"></div>
+<div class="row"><input id="txt" placeholder="Message..."><button style="max-width:100px" onclick="send()">➤</button></div>
+</div>
+
+<div class="card"><h3>📚 Ajouter cours</h3>
+<div class="row"><input id="mat" placeholder="Matière (Allemand...)"><input id="chap" placeholder="Chapitre"></div>
+<textarea id="cont" placeholder="Contenu complet du cours"></textarea>
+<textarea id="simp" placeholder="Explication simplifiée débutant"></textarea>
+<button onclick="addCourse()">Publier cours</button>
+</div>
+</main>
+
+<script>
+let sb=null,students=[],msgs=[];
+const ADMIN_ID='admin';
+const $=id=>document.getElementById(id);
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
+function save(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());init()}
+function init(){
+ const u=localStorage.getItem('SB_URL')||'',k=localStorage.getItem('SB_KEY')||'';
+ $('url').value=u;$('key').value=k;
+ if(!u||!k){$('st').textContent='Non configuré';return}
+ sb=window.supabase.createClient(u,k);$('st').textContent='Connecté ✅';refresh();
+ sb.channel('adm').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>{loadMsgs()}).
+ on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).subscribe();
+}
+async function refresh(){await loadStudents();await loadMsgs();const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}
+async function loadStudents(){
+ const {data}=await sb.from('students').select('*').order('date_creation',{ascending:false});
+ students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
+ $('sel').innerHTML='<option value="">— Choisir élève —</option>'+students.map(s=>`<option value="${s.id}">${s.prenom} ${s.nom} (${s.code_reference})</option>`).join('');
+ render();
+}
+function render(){
+ const q=($('q').value||'').toLowerCase();
+ $('tb').innerHTML=students.filter(s=>(s.nom+s.prenom+s.code_reference).toLowerCase().includes(q)).map(s=>`<tr>
+ <td>${s.prenom} ${s.nom}</td><td><b>${s.code_reference}</b></td>
+ <td>${(s.date_expiration_code||'').slice(0,10)}</td><td>${s.statut_actif?'✅':'❌'}</td>
+ <td style="min-width:220px">
+ <button class="ghost" onclick="prolong('${s.id}',30)">+30j</button>
+ <button class="ghost" onclick="prolong('${s.id}',90)">+90j</button>
+ <button class="ghost" onclick="toggleAct('${s.id}',${!s.statut_actif})">${s.statut_actif?'Désactiver':'Activer'}</button>
+ <button class="red" onclick="regen('${s.id}')">↻ Code</button>
+ </td></tr>`).join('');
+}
+async function createStudent(){
+ const nom=$('nom').value.trim(),prenom=$('prenom').value.trim();if(!nom||!prenom)return alert('Nom+Prénom requis');
+ const code=genCode(),jours=+$('duree').value;
+ const exp=new Date(Date.now()+jours*864e5).toISOString();
+ const {error}=await sb.from('students').insert({nom,prenom,email:$('email').value.trim(),code_reference:code,date_expiration_code:exp,statut_actif:true});
+ if(error)return alert(error.message);
+ $('newcode').innerHTML=`✅ <b>${prenom} ${nom}</b> — Code: <b>${code}</b> (expire ${exp.slice(0,10)})`;
+ $('nom').value=$('prenom').value=$('email').value='';refresh();
+}
+async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);refresh()}
+async function toggleAct(id,v){await sb.from('students').update({statut_actif:v}).eq('id',id);refresh()}
+async function regen(id){const c=genCode();await sb.from('students').update({code_reference:c}).eq('id',id);alert('Nouveau code: '+c);refresh()}
+async function loadMsgs(){const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(200);msgs=(data||[]).reverse();$('n3').textContent=data?.length||0;loadConv()}
+function loadConv(){
+ const id=$('sel').value;if(!id){$('conv').innerHTML='<p class="small">Sélectionne un élève.</p>';return}
+ const c=msgs.filter(m=>m.student_id===id);
+ $('conv').innerHTML=c.map(m=>`<div class="msg ${m.sender_id===ADMIN_ID?'me':'them'}">${m.contenu}<br><span class="small">${(m.timestamp||'').slice(0,16)}</span></div>`).join('')||'<p class="small">Aucun message.</p>';
+ $('conv').scrollTop=9999;
+}
+async function send(){const id=$('sel').value;if(!id)return alert('Choisis un élève');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:id,contenu:t,student_id:id});loadMsgs()}
+async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value)return alert('Matière+Chapitre+Contenu requis');const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error)return alert(error.message);alert('Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
+init();
+</script>
+</body>
+</html>

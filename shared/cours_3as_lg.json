@@ -1,0 +1,1 @@
+{"niveau": "3AS LG", "matieres": ["Allemand", "Anglais", "Francais", "Arabe", "Espagnol", "Histoire-Geo", "Philosophie", "Sciences Islamiques"], "note": "Contenu complet dans supabase/seed_courses.sql. Extrait offline integre dans eleve-app/web/index.html (FALLBACK)."}
