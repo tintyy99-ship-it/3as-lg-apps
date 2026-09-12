@@ -82,6 +82,14 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 #doors.open #dpL{transform:translateX(-110%)}
 .dlogo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:42px;font-weight:900;transition:opacity .4s}
 #doors.open .dlogo{opacity:0}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:#020617;color:#fff;border:1px solid #4ade80;border-radius:12px;padding:12px 20px;z-index:200;opacity:0;transition:all .3s;font-weight:700;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:#f87171}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+#modal.hidden{display:none}
+.mbox{background:#1e293b;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center;border:1px solid #dc2626}
+.mbox .row{display:flex;gap:8px}
+.ver{font-size:11px;color:#64748b;text-align:center;margin-top:14px}
 </style>
 </head>
 <body>
@@ -120,6 +128,7 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </div>
 
 <div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
+<div class="row"><button class="red" onclick="askDeleteAll()">🗑️ Tout supprimer (2 côtés)</button></div>
 <div class="row"><select id="ret" onchange="saveRetention()"><option value="keep">💾 Garder les messages</option><option value="24h">🕐 Éphémère : 24h</option><option value="7d">🕐 Éphémère : 7 jours</option></select></div>
 <div class="msgwrap">
 <div class="inbox" id="inboxPane"><input id="qc" placeholder="🔍 Rechercher…" oninput="renderInbox()"><div id="inbox" style="overflow-y:auto"></div></div>
@@ -139,6 +148,9 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <button onclick="addCourse()">Publier cours</button>
 </div>
 </main>
+<div id="toast"></div>
+<div id="modal" class="hidden"><div class="mbox"><h3 id="mtitle">⚠️ Confirmer ?</h3><p class="small" id="mtext"></p><div class="row"><button class="red" id="mok">Oui</button><button class="ghost" onclick="closeModal()">Non</button></div></div></div>
+<div class="ver">3AS Admin v1.4.1</div>
 
 <script>
 window.__booted=false;
@@ -155,6 +167,11 @@ const DEFAULT_SB_URL='https://xvbswwlphdjtviufwcsx.supabase.co';
 const DEFAULT_SB_KEY='';
 const AVC=["#2563eb","#7c3aed","#dc2626","#059669","#ea580c","#0891b2","#92400e","#65a30d","#9333ea","#0d9488","#e11d48"];
 const $=id=>document.getElementById(id);
+let _modalCb=null;
+function toast(m,ok){const e=$('toast');e.textContent=m;e.className=ok===false?'err':'';requestAnimationFrame(()=>e.classList.add('show'));clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.remove('show'),2600)}
+function askConfirm(txt,cb){$('mtext').textContent=txt;_modalCb=cb;$('modal').classList.remove('hidden')}
+function closeModal(){$('modal').classList.add('hidden');_modalCb=null}
+$('mok').onclick=()=>{const c=_modalCb;closeModal();if(c)c()};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function avColor(name){let h=0;for(const c of (name||'?'))h=(h*31+c.charCodeAt(0))>>>0;return AVC[h%AVC.length]}
 function initials(p,n){return ((p||'?')[0]+(n||'?')[0]).toUpperCase()}
@@ -200,17 +217,17 @@ function render(){
 }
 /* ---------- COMPTES (code auto) ---------- */
 async function createStudent(){
- const nom=$('nom').value.trim(),prenom=$('prenom').value.trim();if(!nom||!prenom)return alert('Nom+Prénom requis');
+ const nom=$('nom').value.trim(),prenom=$('prenom').value.trim();if(!nom||!prenom){toast('Nom + Prénom requis',false);return}
  const code=genCode(),jours=+$('duree').value;
  const exp=new Date(Date.now()+jours*864e5).toISOString();
  const {data,error}=await sb.from('students').insert({nom,prenom,email:$('email').value.trim(),code_reference:code,date_expiration_code:exp,statut_actif:true}).select();
- if(error)return alert(error.message);
+ if(error){toast(error.message,false);return}
  $('newcode').innerHTML=`✅ <b>${esc(prenom)} ${esc(nom)}</b> — Code généré : <b>${code}</b> (expire ${exp.slice(0,10)}) <button class="ghost" style="width:auto;padding:4px 10px" onclick="navigator.clipboard.writeText('${code}')">📋 Copier</button>`;
  $('nom').value=$('prenom').value=$('email').value='';refresh();
 }
-async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);refresh();if(cur===id)openChat(id)}
-async function suspendre(id){if(!confirm('Suspendre ce code ? L’élève ne pourra plus se connecter.'))return;await sb.from('students').update({statut_actif:false}).eq('id',id);refresh();if(cur===id)openChat(id)}
-async function reprendre(id){await sb.from('students').update({statut_actif:true}).eq('id',id);refresh();if(cur===id)openChat(id)}
+async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());const {error}=await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);if(error)return toast(error.message,false);toast(`✅ Prolongé de ${j} jours`);refresh();if(cur===id)openChat(id)}
+async function suspendre(id){askConfirm('Suspendre ce code ? L’élève ne pourra plus se connecter.',async()=>{const {error}=await sb.from('students').update({statut_actif:false}).eq('id',id);if(error)return toast(error.message,false);toast('⛔ Code suspendu');refresh();if(cur===id)openChat(id)})}
+async function reprendre(id){const {error}=await sb.from('students').update({statut_actif:true}).eq('id',id);if(error)return toast(error.message,false);toast('✅ Code réactivé');refresh();if(cur===id)openChat(id)}
 /* ---------- MESSAGERIE MESSENGER ---------- */
 let RET='keep';
 async function loadRetention(){try{const {data}=await sb.from('settings').select('value').eq('key','retention').single();RET=data?data.value:'keep'}catch(e){RET='keep'}$('ret').value=RET;$('ephlbl').classList.toggle('hidden',RET==='keep')}
@@ -248,7 +265,7 @@ async function openChat(id,fromHash){
  $('chathead').innerHTML=`<button class="ghost backbtn" style="display:inline-block;width:auto" onclick="backInbox()">←</button>
  <div class="cav" style="background:${avColor(s.prenom+s.nom)}">${initials(s.prenom,s.nom)}</div>
  <div style="flex:1"><b>${esc(s.prenom)} ${esc(s.nom)}</b><br><span class="small">${esc(s.code_reference)} • expire ${(s.date_expiration_code||'').slice(0,10)} • ${s.statut_actif?'✅ actif':'⛔ suspendu'}</span></div>
- <div class="btns">${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅</button>`}<button class="ghost" onclick="prolong('${s.id}',30)">+30j</button></div>`;
+ <div class="btns">${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅</button>`}<button class="ghost" onclick="prolong('${s.id}',30)">+30j</button><button class="red" onclick="deleteChat('${s.id}')">🗑️</button></div>`;
  $('inboxPane').classList.add('hide');$('chatPane').classList.add('show');
  for(const m of msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu)){await sb.from('messages').update({lu:true}).eq('id',m.id)}
  await loadMsgs(false);
@@ -265,8 +282,10 @@ function renderConv(live){
  }).join('')||'<p class="small">Aucun message. Dis bonjour 👋</p>';
  if(!live||nearBottom)box.scrollTop=99999;
 }
-async function send(){if(!cur)return alert('Choisis une conversation');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
-async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value)return alert('Matière+Chapitre+Contenu requis');const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error)return alert(error.message);alert('Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
+async function deleteChat(id){const s=students.find(x=>x.id===id);askConfirm(`Supprimer TOUS les messages avec ${s?esc(s.prenom+' '+s.nom):'cet élève'} (élève + admin) ?`,async()=>{const {error}=await sb.from('messages').delete().eq('student_id',id);if(error)return toast(error.message,false);toast('🗑️ Conversation supprimée des 2 côtés');loadMsgs(false)})}
+function askDeleteAll(){askConfirm('Supprimer TOUS les messages de TOUS les élèves (2 côtés) ? Irréversible !',async()=>{const {error}=await sb.from('messages').delete().neq('id','00000000-0000-0000-0000-000000000000');if(error)return toast(error.message,false);toast('🗑️ Tous les messages supprimés');loadMsgs(false)})}
+async function send(){if(!cur){toast('Choisis une conversation',false);return}const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
+async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value){toast('Matière+Chapitre+Contenu requis',false);return}const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error){toast(error.message,false);return}toast('📚 Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
 function playDoors(next){const d=$('doors');d.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));d.onclick=()=>{d.classList.add('hidden');d.classList.remove('open')};setTimeout(()=>{d.classList.add('hidden');d.classList.remove('open');if(next)next()},850)}
 window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
 setTimeout(()=>{const s=$('splash');if(s)s.classList.add('hide')},3500);

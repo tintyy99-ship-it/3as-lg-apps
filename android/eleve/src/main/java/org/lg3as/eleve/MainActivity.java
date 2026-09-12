@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         wv.setWebViewClient(new WebViewClient());
+        wv.setWebChromeClient(new android.webkit.WebChromeClient());
         setContentView(wv);
         if (savedInstanceState != null) {
             wv.restoreState(savedInstanceState);

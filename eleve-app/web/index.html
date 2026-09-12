@@ -13,7 +13,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#020617;--bg2:#1e1b4b;--bg3:#312e81;--card:#1e293b;--ink:#e2e8f0;--mut:#94a3b8;--line:#334155;--them:#334155;--input:#0f172a;--me:#3b82f6;--nav:#0f172a}}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,'Segoe UI',Tahoma}
 body{background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%);background-attachment:fixed;color:var(--ink);min-height:100vh}
-header{background:linear-gradient(180deg,#172f7a,#1e40af);color:#fff;padding:14px;text-align:center;position:sticky;top:0;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+header{background:linear-gradient(180deg,#172f7a,#1e40af);color:#fff;padding:14px;text-align:center;position:sticky;top:0;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.35);border-bottom:3px solid #f59e0b}
 .card{background:var(--card);border-radius:16px;padding:16px;margin:12px;box-shadow:0 10px 24px rgba(0,0,0,.30);border:1px solid rgba(255,255,255,.25)}
 input,select,textarea,button{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid var(--line);font-size:16px;background:var(--input);color:var(--ink)}
 button{background:linear-gradient(180deg,#60a5fa,#1d4ed8);border:none;border-bottom:4px solid #172f7a;border-radius:12px;box-shadow:0 5px 0 rgba(10,20,60,.55),0 8px 16px rgba(0,0,0,.30);font-weight:700;color:#fff;cursor:pointer;transition:transform .06s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
@@ -82,7 +82,15 @@ main{padding-bottom:80px;max-width:700px;margin:auto}
 @keyframes float{from{transform:translateY(0)}to{transform:translateY(26px)}}
 .authCard{position:relative;background:rgba(255,255,255,.12);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:20px;text-align:center;color:#fff}
 .authCard .small{color:#e0e7ff}
-.alogo{font-size:52px;font-weight:900;letter-spacing:3px}
+.alogo{font-size:52px;font-weight:900;letter-spacing:3px;animation:shine 3s linear infinite}
+@keyframes shine{0%{filter:brightness(1)}50%{filter:brightness(1.25)}100%{filter:brightness(1)}}
+.chip{background:linear-gradient(180deg,var(--input),var(--them)) !important}
+.crow{box-shadow:0 4px 12px rgba(0,0,0,.14)}
+.sech{color:#b45309}
+[data-theme="dark"] .sech{color:#fbbf24}
+.badge{box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.trow button{background:linear-gradient(180deg,var(--input),var(--them));color:var(--ink)}
+.chathead{border-bottom:2px solid #f59e0b}
 .alogo span{background:linear-gradient(180deg,#fde68a,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
 .asub{color:#e0e7ff;margin-bottom:8px;font-size:14px}
 #code{background:rgba(255,255,255,.95);border:2px solid #fff;text-align:center;letter-spacing:3px;font-weight:800;font-size:19px;color:#1e1b4b;box-shadow:0 0 0 4px rgba(255,255,255,.25),0 8px 22px rgba(0,0,0,.35)}
@@ -133,7 +141,7 @@ header{position:sticky}
 
 <div id="app" class="hidden">
 <div class="card"><span id="hello"></span> <span class="badge" id="exp" style="background:#059669"></span>
-<button class="ghost" onclick="logout()">خروج</button></div>
+</div>
 
 <div id="tab-cours">
 <div class="card"><h3 id="ch">📖 مواد السنة الثالثة لغات</h3>
@@ -164,7 +172,7 @@ header{position:sticky}
 <button id="th-d" onclick="setTheme('dark')">🌙 داكن</button>
 <button id="th-a" onclick="setTheme('auto')">📱 النظام</button>
 </div>
-<a href="https://t.me/Roqaya_2328" target="_blank"><button class="telegram" id="cptg">مراسلة الدعم تيليغرام</button></a>
+<button class="red" style="background:linear-gradient(180deg,#f87171,#b91c1c);border-bottom-color:#7f1d1d" onclick="logout()" id="lg-out">🚪 خروج</button><a href="https://t.me/Roqaya_2328" target="_blank"><button class="telegram" id="cptg">مراسلة الدعم تيليغرام</button></a>
 </div>
 </div>
 </div>
@@ -192,20 +200,20 @@ const MAT_COEF={"الألمانية":6,"الإسبانية":6,"الإيطالي�
 const MAT_COLORS={"الألمانية":"#2563eb","الإنجليزية":"#7c3aed","الفرنسية":"#dc2626","العربية":"#059669","الإسبانية":"#ea580c","الإيطالية":"#0891b2","التاريخ":"#92400e","الجغرافيا":"#65a30d","الفلسفة":"#9333ea","العلوم الإسلامية":"#0d9488","الرياضيات":"#e11d48"};
 let LANG=localStorage.getItem('3as_lang')||'ar';
 const STR={
-ar:{hdr:"📚 الثالثة ثانوي لغات — فضاء التلميذ",sub:"دروس • شروح • مراسلة",lgh:"🔑 الدخول",lgp:"رمز الدخول الخاص بك يعطيه لك الأستاذ المشرف.",lgtg:"💬 دعم تيليغرام : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"دخول ✨",e_net:"مشكلة في الاتصال، تحقق من الإنترنت وحاول مجددا.",e_empty:"أدخل الرمز من فضلك.",e_bad:"الرمز غير صحيح.",e_susp:"⛔ تم تجميد هذا الرمز. راسل الدعم.",e_exp:"انتهت صلاحية الرمز. اطلب التمديد عبر تيليغرام.",hello:"مرحبا",exp:"ينتهي: ",ch:"📖 مواد السنة الثالثة لغات",qph:"🔍 ابحث في الدروس…",all:"الكل",t1:"الفصل الأول",t2:"الفصل الثاني",t3:"الفصل الثالث",nomatch:"لا توجد دروس مطابقة.",back:"→ رجوع للدروس",full:"اضغط لعرض الدرس الكامل مع الشرح ←",tip:"الزبدة :",chn:"الأستاذ المشرف",chs:"دائما معك 🤝",eph:"🕐 الرسائل مؤقتة وتُحذف تلقائيا",nomsg:"لا رسائل بعد. اكتب للأستاذ 👋",txtph:"اكتب للأستاذ…",senderr:"مشكلة في الاتصال.",cph:"👤 حسابي",code:"الرمز:",valid:"الصلاحية:",lngh:"🌍 اللغة",thh:"🎨 المظهر",thl:"☀️ فاتح",thd:"🌙 داكن",tha:"📱 النظام",cptg:"مراسلة الدعم تيليغرام",n1:"📖 الدروس",n2:"💬 المراسلة",n3:"👤 حسابي",drm:"المواد",drt:"الفصول",coef:"المعامل",arch:"📦 محفوظ للفائدة — خارج برنامج اللغات 2026"},
-fr:{hdr:"📚 3AS Langues — Espace Élève",sub:"Cours • Explications • Messagerie",lgh:"🔑 Connexion",lgp:"Ton code d'accès te donne ton professeur.",lgtg:"💬 Support Telegram : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Entrer ✨",e_net:"Problème de connexion, vérifie internet.",e_empty:"Entre ton code.",e_bad:"Code invalide.",e_susp:"⛔ Code suspendu. Contacte le support.",e_exp:"Code expiré. Demande une prolongation via Telegram.",hello:"Salut",exp:"Expire : ",ch:"📖 Matières 3AS Langues",qph:"🔍 Rechercher un cours…",all:"Toutes",t1:"Trimestre 1",t2:"Trimestre 2",t3:"Trimestre 3",nomatch:"Aucun cours trouvé.",back:"→ Retour aux cours",full:"Clique pour le cours complet ←",tip:"L'essentiel :",chn:"Professeur",chs:"Toujours avec toi 🤝",eph:"🕐 Messages éphémères (suppression auto)",nomsg:"Aucun message. Écris au prof 👋",txtph:"Écris au prof…",senderr:"Problème de connexion.",cph:"👤 Mon compte",code:"Code :",valid:"Validité :",lngh:"🌍 Langue",thh:"🎨 Thème",thl:"☀️ Clair",thd:"🌙 Sombre",tha:"📱 Système",cptg:"Contacter le support Telegram",n1:"📖 Cours",n2:"💬 Messages",n3:"👤 Compte",drm:"Matières",drt:"Trimestres",coef:"Coef",arch:"📦 Archive — hors programme langues 2026"},
-en:{hdr:"📚 3AS Languages — Student Space",sub:"Lessons • Explanations • Chat",lgh:"🔑 Login",lgp:"Your access code is given by your teacher.",lgtg:"💬 Telegram support: @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Enter ✨",e_net:"Connection issue, check internet.",e_empty:"Enter your code.",e_bad:"Invalid code.",e_susp:"⛔ Code suspended. Contact support.",e_exp:"Code expired. Ask for renewal via Telegram.",hello:"Hi",exp:"Expires: ",ch:"📖 3AS Languages subjects",qph:"🔍 Search lessons…",all:"All",t1:"Term 1",t2:"Term 2",t3:"Term 3",nomatch:"No lessons found.",back:"→ Back to lessons",full:"Tap for the full lesson ←",tip:"Key point:",chn:"Teacher",chs:"Always with you 🤝",eph:"🕐 Ephemeral messages (auto-delete)",nomsg:"No messages yet. Write to the teacher 👋",txtph:"Write to the teacher…",senderr:"Connection issue.",cph:"👤 My account",code:"Code:",valid:"Validity:",lngh:"🌍 Language",thh:"🎨 Theme",thl:"☀️ Light",thd:"🌙 Dark",tha:"📱 System",cptg:"Contact Telegram support",n1:"📖 Lessons",n2:"💬 Chat",n3:"👤 Account",drm:"Subjects",drt:"Terms",coef:"Coef",arch:"📦 Archive — off 2026 languages program"}};
+ar:{hdr:"📚 الثالثة ثانوي لغات — فضاء التلميذ",sub:"دروس • شروح • مراسلة",lgh:"🔑 الدخول",lgp:"رمز الدخول الخاص بك يعطيه لك الأستاذ المشرف.",lgtg:"💬 دعم تيليغرام : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"دخول ✨",e_net:"مشكلة في الاتصال، تحقق من الإنترنت وحاول مجددا.",e_empty:"أدخل الرمز من فضلك.",e_bad:"الرمز غير صحيح.",e_susp:"⛔ تم تجميد هذا الرمز. راسل الدعم.",e_exp:"انتهت صلاحية الرمز. اطلب التمديد عبر تيليغرام.",hello:"مرحبا",exp:"ينتهي: ",ch:"📖 مواد السنة الثالثة لغات",qph:"🔍 ابحث في الدروس…",all:"الكل",t1:"الفصل الأول",t2:"الفصل الثاني",t3:"الفصل الثالث",nomatch:"لا توجد دروس مطابقة.",back:"→ رجوع للدروس",full:"اضغط لعرض الدرس الكامل مع الشرح ←",tip:"الزبدة :",chn:"الأستاذ المشرف",chs:"دائما معك 🤝",eph:"🕐 الرسائل مؤقتة وتُحذف تلقائيا",nomsg:"لا رسائل بعد. اكتب للأستاذ 👋",txtph:"اكتب للأستاذ…",senderr:"مشكلة في الاتصال.",cph:"👤 حسابي",code:"الرمز:",valid:"الصلاحية:",lngh:"🌍 اللغة",thh:"🎨 المظهر",thl:"☀️ فاتح",thd:"🌙 داكن",tha:"📱 النظام",cptg:"مراسلة الدعم تيليغرام",n1:"📖 الدروس",n2:"💬 المراسلة",n3:"👤 حسابي",drm:"المواد",drt:"الفصول",coef:"المعامل",arch:"📦 محفوظ للفائدة — خارج برنامج اللغات 2026",out:"🚪 خروج",lessons:"درسا",notfound:"⚠️ الدرس غير موجود. ارجع للقائمة.",ver:"الإصدار 1.4.1"},
+fr:{hdr:"📚 3AS Langues — Espace Élève",sub:"Cours • Explications • Messagerie",lgh:"🔑 Connexion",lgp:"Ton code d'accès te donne ton professeur.",lgtg:"💬 Support Telegram : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Entrer ✨",e_net:"Problème de connexion, vérifie internet.",e_empty:"Entre ton code.",e_bad:"Code invalide.",e_susp:"⛔ Code suspendu. Contacte le support.",e_exp:"Code expiré. Demande une prolongation via Telegram.",hello:"Salut",exp:"Expire : ",ch:"📖 Matières 3AS Langues",qph:"🔍 Rechercher un cours…",all:"Toutes",t1:"Trimestre 1",t2:"Trimestre 2",t3:"Trimestre 3",nomatch:"Aucun cours trouvé.",back:"→ Retour aux cours",full:"Clique pour le cours complet ←",tip:"L'essentiel :",chn:"Professeur",chs:"Toujours avec toi 🤝",eph:"🕐 Messages éphémères (suppression auto)",nomsg:"Aucun message. Écris au prof 👋",txtph:"Écris au prof…",senderr:"Problème de connexion.",cph:"👤 Mon compte",code:"Code :",valid:"Validité :",lngh:"🌍 Langue",thh:"🎨 Thème",thl:"☀️ Clair",thd:"🌙 Sombre",tha:"📱 Système",cptg:"Contacter le support Telegram",n1:"📖 Cours",n2:"💬 Messages",n3:"👤 Compte",drm:"Matières",drt:"Trimestres",coef:"Coef",arch:"📦 Archive — hors programme langues 2026",out:"🚪 Déconnexion",lessons:"cours",notfound:"⚠️ Cours introuvable. Reviens à la liste.",ver:"Version 1.4.1"},
+en:{hdr:"📚 3AS Languages — Student Space",sub:"Lessons • Explanations • Chat",lgh:"🔑 Login",lgp:"Your access code is given by your teacher.",lgtg:"💬 Telegram support: @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Enter ✨",e_net:"Connection issue, check internet.",e_empty:"Enter your code.",e_bad:"Invalid code.",e_susp:"⛔ Code suspended. Contact support.",e_exp:"Code expired. Ask for renewal via Telegram.",hello:"Hi",exp:"Expires: ",ch:"📖 3AS Languages subjects",qph:"🔍 Search lessons…",all:"All",t1:"Term 1",t2:"Term 2",t3:"Term 3",nomatch:"No lessons found.",back:"→ Back to lessons",full:"Tap for the full lesson ←",tip:"Key point:",chn:"Teacher",chs:"Always with you 🤝",eph:"🕐 Ephemeral messages (auto-delete)",nomsg:"No messages yet. Write to the teacher 👋",txtph:"Write to the teacher…",senderr:"Connection issue.",cph:"👤 My account",code:"Code:",valid:"Validity:",lngh:"🌍 Language",thh:"🎨 Theme",thl:"☀️ Light",thd:"🌙 Dark",tha:"📱 System",cptg:"Contact Telegram support",n1:"📖 Lessons",n2:"💬 Chat",n3:"👤 Account",drm:"Subjects",drt:"Terms",coef:"Coef",arch:"📦 Archive — off 2026 languages program",out:"🚪 Logout",lessons:"lessons",notfound:"⚠️ Lesson not found. Back to list.",ver:"Version 1.4.1"}};
 function t(k){return (STR[LANG]&&STR[LANG][k])||STR.ar[k]||k}
 function setLang(l){LANG=l;localStorage.setItem('3as_lang',l);applyLang()}
 function applyLang(){document.documentElement.lang=LANG;document.documentElement.dir=(LANG==='ar')?'rtl':'ltr';
- const S={hdr:'hdr',sub:'splashsub',lgh:'lg-h',lgp:'lg-p',lgtg:'lg-tg',go:'lg-go',ch:'ch',back:'bkbtn',chn:'chn',chs:'chs',eph:'ephlbl',cph:'cph',lngh:'lngh',thh:'thh',cptg:'cptg',n1:'b1',n2:'b2',n3:'b3','drm':'dr-m','drt':'dr-t'};
+ const S={hdr:'hdr',sub:'splashsub',lgh:'lg-h',lgp:'lg-p',lgtg:'lg-tg',go:'lg-go',ch:'ch',back:'bkbtn',chn:'chn',chs:'chs',eph:'ephlbl',cph:'cph',lngh:'lngh',thh:'thh',cptg:'cptg',n1:'b1',n2:'b2',n3:'b3','drm':'dr-m','drt':'dr-t',out:'lg-out'};
  for(const k in S){const e=$(S[k]);if(e)e.textContent=t(k)}
  const cp=$('code');if(cp)cp.placeholder=t('codeph');
  const qq=$('q');if(qq)qq.placeholder=t('qph');
  const tx=$('txt');if(tx)tx.placeholder=t('txtph');
  ['ar','fr','en'].forEach(x=>{const b=$('ln-'+x);if(b)b.classList.toggle('active',LANG===x)});
  if(me){$('hello').textContent=`${t('hello')} ${me.prenom} ${me.nom} 👋`;$('exp').textContent=t('exp')+(me.date_expiration_code||'—').slice(0,10);
- $('profil').innerHTML=`<p><b>${me.prenom} ${me.nom}</b><br>${me.email||''}<br>${t('code')} <b>${me.code_reference}</b><br>${t('valid')} ${me.date_expiration_code||'—'}</p>`}
+ $('profil').innerHTML=`<p><b>${me.prenom} ${me.nom}</b><br>${me.email||''}<br>${t('code')} <b>${me.code_reference}</b><br>${t('valid')} ${me.date_expiration_code||'—'}</p><p class="small">${t('ver')}</p>`}
  buildChips();buildTrims();renderCourses();if(curD>=0&&allCourses[curD])showDetail();renderMsgs(msgsCache)}
 function toggleDrawer(open){$('drawer').classList.toggle('hidden',!open);$('drawerOv').classList.toggle('hidden',!open)}
 const TRIMLOC={1:'t1',2:'t2',3:'t3'};
@@ -309,12 +317,12 @@ function renderCourses(){
   <h4>${esc(c.chapitre)}</h4>
   <span class="small">${t('full')}</span></div>`;
  });
- $('courses').innerHTML=h||`<p class="small">${t('nomatch')}</p>`;
+ $('courses').innerHTML=(list.length?`<p class="small">📚 ${list.length} ${t('lessons')}</p>`:'')+(h||`<p class="small">${t('nomatch')}</p>`);
 }
 function animCourses(){const c=$('courses');if(!c)return;c.classList.remove('anim-in');void c.offsetWidth;c.classList.add('anim-in')}
 function showDetail(){
  const item=((viewList[curD]||{}).c)||allCourses[curD];
- if(!item){go('#/');return}
+ if(!item){$('detail').innerHTML=`<p>${t('notfound')}</p><button class="ghost backbtn" onclick="go('#/')">${t('back')}</button>`;return}
  const c=item,cl=col(c.matiere);
  $('detail').innerHTML=`<span class="badge" style="background:${cl}">${esc(c.matiere)}</span>
  <span class="small"> ${esc(c.section||'')} — ${TRIMN[c.trimestre]||''}</span>
@@ -357,7 +365,7 @@ async function send(){
  loadMsgs();
 }
 function subscribe(){
- try{sb.channel('e'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`student_id=eq.${me.id}`},()=>loadMsgs()).subscribe()}catch(e){}
+ try{sb.channel('e'+me.id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:`student_id=eq.${me.id}`},()=>loadMsgs()).subscribe()}catch(e){}
 }
 applyTheme();applyLang();
 window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
