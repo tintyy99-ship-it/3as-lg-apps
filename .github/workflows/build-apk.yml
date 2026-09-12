@@ -29,7 +29,12 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Serve both apps
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          for APP in eleve-app admin-app; do
+            printf 'window.SB_CONFIG = {\n  SUPABASE_URL: "https://xvbswwlphdjtviufwcsx.supabase.co",\n  SUPABASE_ANON_KEY: "%s"\n};\n' "$SUPABASE_ANON_KEY" > "$APP/web/supabase-config.js"
+          done
           nohup python3 -m http.server 8091 --directory eleve-app/web >/tmp/s1.log 2>&1 &
           nohup python3 -m http.server 8092 --directory admin-app/web >/tmp/s2.log 2>&1 &
           sleep 2
