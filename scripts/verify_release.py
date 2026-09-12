@@ -74,11 +74,11 @@ def main():
             fb = J.loads(html[i:j].replace("\nwindow.__booted=true;", "").rstrip().rstrip(";"))
             check("eleve: 100+ cours embarqués", len(fb) >= 100, str(len(fb)))
             for feat in ["viewList", "playDoors", "setLang", "toggleDrawer", "MAT_COEF",
-                         "slideBlur", "slideBlur".lower(), "__booted", "lg-out", "1.4.1"]:
+                         "slideBlur", "slideBlur".lower(), "__booted", "lg-out", "1.5"]:
                 check(f"eleve: feature {feat}", feat.lower() in html.lower(), "")
         else:
             for feat in ["suspendre", "deleteChat", "askDeleteAll", "__booted",
-                         "toast", "1.4.1", "5db4f9e3587a9752"]:
+                         "toast", "1.5", "5db4f9e3587a9752"]:
                 check(f"admin: feature {feat}", feat in html, "")
 
     print()
