@@ -73,31 +73,66 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: bash android/prepare_assets.sh
 
-      - name: Build debug APKs
-        run: gradle --project-dir android :eleve:assembleDebug :admin:assembleDebug --stacktrace
+      - name: Decode Keystore (Play Store, optionnel)
+        # Si les 4 secrets sont absents, on reste en signature debug (build testable, PAS pour Play Store).
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > /tmp/release.keystore
+            echo "KEYSTORE_PATH=/tmp/release.keystore" >> $GITHUB_ENV
+            echo "keystore OK"
+          else
+            echo "Pas de keystore Play Store -> fallback debug (test uniquement)"
+          fi
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Build debug APKs + release AAB/APK
+        env:
+          KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle --project-dir android :eleve:assembleDebug :admin:assembleDebug :eleve:assembleRelease :admin:assembleRelease :eleve:bundleRelease :admin:bundleRelease --stacktrace
 
       - name: Verify launcher icons (aapt2, bloquant)
         run: |
           AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt2 | head -1)
           echo "aapt2: $AAPT"
-          for APK in android/eleve/build/outputs/apk/debug/eleve-debug.apk android/admin/build/outputs/apk/debug/admin-debug.apk; do
+          for APK in android/eleve/build/outputs/apk/debug/eleve-debug.apk android/admin/build/outputs/apk/debug/admin-debug.apk android/eleve/build/outputs/apk/release/eleve-release.apk android/admin/build/outputs/apk/release/admin-release.apk; do
             echo "== $APK"
-            $AAPT dump badging "$APK" | grep -E "^application:|^application-icon|launchable-activity" || (echo "BADGING ECHEC" && exit 1)
+            SIZE=$(stat -c%s "$APK")
+            echo "taille: $SIZE octets"
+            # Un vrai WebView APK fait plusieurs Mo. 35 Ko = APK vide/casse (cf. bug v1.6).
+            if [ "$SIZE" -lt 500000 ]; then echo "APK SUSPECT TROP PETIT: $APK ($SIZE octets)" && exit 1; fi
+            $AAPT dump badging "$APK" | grep -E "^application:|^application-icon|launchable-activity" || (echo "BADGING ECHEC $APK" && exit 1)
           done
-          $AAPT dump badging android/eleve/build/outputs/apk/debug/eleve-debug.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ELEVE" && exit 1)
-          $AAPT dump badging android/admin/build/outputs/apk/debug/admin-debug.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ADMIN" && exit 1)
+          $AAPT dump badging android/eleve/build/outputs/apk/release/eleve-release.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ELEVE" && exit 1)
+          $AAPT dump badging android/admin/build/outputs/apk/release/admin-release.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ADMIN" && exit 1)
+          # Les 2 PNG doivent etre differents entre eleve et admin (pas d'icone dupliquee)
+          ELEVE_ICON=$($AAPT dump badging android/eleve/build/outputs/apk/release/eleve-release.apk | grep -o "application-icon[^']*'[^']*'" | head -1)
+          ADMIN_ICON=$($AAPT dump badging android/admin/build/outputs/apk/release/admin-release.apk | grep -o "application-icon[^']*'[^']*'" | head -1)
+          echo "eleve: $ELEVE_ICON"
+          echo "admin: $ADMIN_ICON"
           echo "ICONES OK"
 
-      - name: Rename APKs
+      - name: Rename APKs/AABs (v1.7)
         run: |
-          cp android/eleve/build/outputs/apk/debug/eleve-debug.apk 3AS-LG-Eleve-v1.0.apk
-          cp android/admin/build/outputs/apk/debug/admin-debug.apk 3AS-LG-Admin-v1.0.apk
-          ls -la *.apk
+          cp android/eleve/build/outputs/apk/debug/eleve-debug.apk 3AS-LG-Eleve-v1.7-debug.apk
+          cp android/admin/build/outputs/apk/debug/admin-debug.apk 3AS-LG-Admin-v1.7-debug.apk
+          cp android/eleve/build/outputs/apk/release/eleve-release.apk 3AS-LG-Eleve-v1.7.apk
+          cp android/admin/build/outputs/apk/release/admin-release.apk 3AS-LG-Admin-v1.7.apk
+          cp android/eleve/build/outputs/bundle/release/eleve-release.aab 3AS-LG-Eleve-v1.7.aab
+          cp android/admin/build/outputs/bundle/release/admin-release.aab 3AS-LG-Admin-v1.7.aab
+          ls -la *.apk *.aab
 
-      - name: Upload APKs
+      - name: Upload APKs/AABs
         uses: actions/upload-artifact@v4
         with:
-          name: apks-3as-lg
+          name: apks-aab-3as-lg-v1.7
           path: |
-            3AS-LG-Eleve-v1.0.apk
-            3AS-LG-Admin-v1.0.apk
+            3AS-LG-Eleve-v1.7-debug.apk
+            3AS-LG-Admin-v1.7-debug.apk
+            3AS-LG-Eleve-v1.7.apk
+            3AS-LG-Admin-v1.7.apk
+            3AS-LG-Eleve-v1.7.aab
+            3AS-LG-Admin-v1.7.aab

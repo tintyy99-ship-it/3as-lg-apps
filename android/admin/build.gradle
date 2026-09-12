@@ -10,13 +10,25 @@ android {
         applicationId 'org.lg3as.admin'
         minSdk 24
         targetSdk 34
-        versionCode 6
-        versionName '1.6'
+        versionCode 7
+        versionName '1.7'
+    }
+
+    signingConfigs {
+        release {
+            // Play Store: rempli via secrets CI (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD).
+            // Sans secrets: fallback debug pour que assembleRelease/bundleRelease restent testables en CI.
+            storeFile file(System.getenv('KEYSTORE_PATH') ?: "${System.getProperty('user.home')}/.android/debug.keystore")
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'android'
+            keyAlias System.getenv('KEY_ALIAS') ?: 'androiddebugkey'
+            keyPassword System.getenv('KEY_PASSWORD') ?: 'android'
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
     }
 
