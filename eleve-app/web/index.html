@@ -181,7 +181,7 @@ header{position:sticky}
 
 <nav id="navbar" class="hidden">
 <button id="b1" onclick="go('#/')">📖 الدروس</button>
-<button id="b2" onclick="go('#/msg')">💬 المراسلة<span id="nbadge" class="unread hidden">0</span></button>
+<button id="b2" onclick="go('#/msg')"><span id="b2t">💬 المراسلة</span><span id="nbadge" class="unread hidden">0</span></button>
 <button id="b3" onclick="go('#/compte')">👤 حسابي</button>
 </nav>
 
@@ -207,7 +207,7 @@ en:{hdr:"📚 3AS Languages — Student Space",sub:"Lessons • Explanations •
 function t(k){return (STR[LANG]&&STR[LANG][k])||STR.ar[k]||k}
 function setLang(l){LANG=l;localStorage.setItem('3as_lang',l);applyLang()}
 function applyLang(){document.documentElement.lang=LANG;document.documentElement.dir=(LANG==='ar')?'rtl':'ltr';
- const S={hdr:'hdr',sub:'splashsub',lgh:'lg-h',lgp:'lg-p',lgtg:'lg-tg',go:'lg-go',ch:'ch',back:'bkbtn',chn:'chn',chs:'chs',eph:'ephlbl',cph:'cph',lngh:'lngh',thh:'thh',cptg:'cptg',n1:'b1',n2:'b2',n3:'b3','drm':'dr-m','drt':'dr-t',out:'lg-out'};
+ const S={hdr:'hdr',sub:'splashsub',lgh:'lg-h',lgp:'lg-p',lgtg:'lg-tg',go:'lg-go',ch:'ch',back:'bkbtn',chn:'chn',chs:'chs',eph:'ephlbl',cph:'cph',lngh:'lngh',thh:'thh',cptg:'cptg',n1:'b1',n2:'b2t',n3:'b3','drm':'dr-m','drt':'dr-t',out:'lg-out'};
  for(const k in S){const e=$(S[k]);if(e)e.textContent=t(k)}
  const cp=$('code');if(cp)cp.placeholder=t('codeph');
  const qq=$('q');if(qq)qq.placeholder=t('qph');
@@ -267,7 +267,7 @@ function route(){
  ['b1','b2','b3'].forEach(b=>$(b).classList.remove('active'));
  const hsh=location.hash||'#/';
  if(hsh.startsWith('#/cours/')){curD=parseInt(hsh.split('/')[2]||'-1');showDetail();$('tab-detail').classList.remove('hidden')}
- else if(hsh==='#/msg'){$('tab-msg').classList.remove('hidden');$('b2').classList.add('active');$('nbadge').classList.add('hidden');const b=$('msgs');if(b)b.scrollTop=99999}
+ else if(hsh==='#/msg'){$('tab-msg').classList.remove('hidden');$('b2').classList.add('active');const nb=$('nbadge');if(nb)nb.classList.add('hidden');const b=$('msgs');if(b)b.scrollTop=99999}
  else if(hsh==='#/compte'){$('tab-compte').classList.remove('hidden');$('b3').classList.add('active')}
  else{$('tab-cours').classList.remove('hidden');$('b1').classList.add('active')}
 }
@@ -344,7 +344,7 @@ async function loadMsgs(){
  if(old.length){const r2=await sb.from('messages').select('*').eq('student_id',me.id).order('timestamp');list=r2.data||[]}
  renderMsgs(list);
  const unread=list.filter(m=>m.receiver_id===me.id&&!m.lu);
- if(unread.length){$('nbadge').textContent=unread.length;$('nbadge').classList.remove('hidden')}
+ if(unread.length){const nb2=$('nbadge');if(nb2){nb2.textContent=unread.length;nb2.classList.remove('hidden')}}
  for(const m of unread){await sb.from('messages').update({lu:true}).eq('id',m.id)}
 }
 function renderMsgs(list){
