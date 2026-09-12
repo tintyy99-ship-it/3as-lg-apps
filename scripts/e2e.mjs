@@ -34,7 +34,7 @@ try {
 
   // ---------- APP ÉLÈVE ----------
   const page = await browser.newPage();
-  page.on('pageerror', (e) => errors.push('eleve pageerror: ' + e.message));
+  page.on('pageerror', (e) => errors.push('eleve pageerror: ' + e.message + ' || ' + (e.stack || '').split('\n').slice(0, 4).join(' <- ')));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('eleve console: ' + m.text().slice(0, 200)); });
   await page.goto(E_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#splash.hide', { timeout: 15000 });
@@ -46,7 +46,7 @@ try {
   await page.waitForSelector('.crow', { timeout: 20000 });
   const n = await page.locator('.crow').count();
   ok('eleve: cours listés (120 attendus)', n >= 100, String(n));
-  await page.locator('.crow').first().click();
+  await page.locator('.crow', { hasText: 'الألمانية' }).first().click();
   await page.waitForSelector('#tab-detail:not(.hidden)', { timeout: 10000 });
   const detailLen = (await page.locator('#tab-detail .detail').innerText()).length;
   ok('eleve: DÉTAIL du cours affiché (complet)', detailLen > 300, detailLen + ' cars');
@@ -68,7 +68,7 @@ try {
 
   // ---------- APP ADMIN ----------
   const pa = await browser.newPage();
-  pa.on('pageerror', (e) => errors.push('admin pageerror: ' + e.message));
+  pa.on('pageerror', (e) => errors.push('admin pageerror: ' + e.message + ' || ' + (e.stack || '').split('\n').slice(0, 4).join(' <- ')));
   pa.on('console', (m) => { if (m.type() === 'error') errors.push('admin console: ' + m.text().slice(0, 200)); });
   await pa.goto(A_URL, { waitUntil: 'domcontentloaded' });
   await pa.waitForSelector('#splash.hide', { timeout: 15000 });
