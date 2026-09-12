@@ -8,8 +8,9 @@ from courses_ar3 import COURSES_AR_ES_IT
 from courses_ar4 import COURSES_HG_PHILO
 from courses_ar5 import COURSES_ISL_MATH
 from courses_ar6 import COURSES_TOP
+from courses_ar7 import COURSES_W2
 
-COURSES = COURSES_DE + COURSES_ENFR + COURSES_AR_ES_IT + COURSES_HG_PHILO + COURSES_ISL_MATH + COURSES_TOP
+COURSES = COURSES_DE + COURSES_ENFR + COURSES_AR_ES_IT + COURSES_HG_PHILO + COURSES_ISL_MATH + COURSES_TOP + COURSES_W2
 
 MATIERES = ["الألمانية", "الإنجليزية", "الفرنسية", "العربية", "الإسبانية",
             "الإيطالية", "الأمازيغية", "التاريخ", "الجغرافيا", "الفلسفة",

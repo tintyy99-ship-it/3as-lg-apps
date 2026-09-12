@@ -162,7 +162,7 @@ function initials(p,n){return ((p||'?')[0]+(n||'?')[0]).toUpperCase()}
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function unlock(){
  if(Date.now()<lockUntil)return $('pwerr').textContent='Patiente '+Math.ceil((lockUntil-Date.now())/1000)+'s…';
- if(await sha($('pw').value)===ADMIN_HASH){sessionStorage.setItem('adm_auth','1');playDoors(()=>{$('lock').style.display='none';init()})}
+ if(await sha($('pw').value)===ADMIN_HASH){sessionStorage.setItem('adm_auth','1');$('lock').style.display='none';init();playDoors(null)}
  else{lockN++;$('pwerr').textContent='Mot de passe incorrect ('+lockN+'/3)';$('pw').value='';if(lockN>=3){lockUntil=Date.now()+30000;lockN=0;$('pwerr').textContent='Bloqué 30s.'}}
 }
 if(sessionStorage.getItem('adm_auth')==='1'){$('lock').style.display='none'}
@@ -267,7 +267,7 @@ function renderConv(live){
 }
 async function send(){if(!cur)return alert('Choisis une conversation');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
 async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value)return alert('Matière+Chapitre+Contenu requis');const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error)return alert(error.message);alert('Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
-function playDoors(next){const d=$('doors');d.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));setTimeout(()=>{d.classList.add('hidden');d.classList.remove('open');next()},1150)}
+function playDoors(next){const d=$('doors');d.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));d.onclick=()=>{d.classList.add('hidden');d.classList.remove('open')};setTimeout(()=>{d.classList.add('hidden');d.classList.remove('open');if(next)next()},850)}
 window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
 setTimeout(()=>{const s=$('splash');if(s)s.classList.add('hide')},3500);
 if(sessionStorage.getItem('adm_auth')==='1')init();
