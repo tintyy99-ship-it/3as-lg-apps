@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'org.lg3as.admin'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'org.lg3as.admin'
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 8
         versionName '1.8'
     }
