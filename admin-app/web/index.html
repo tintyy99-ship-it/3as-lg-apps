@@ -64,9 +64,29 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
  .chat.show{display:flex}
  .backbtn{display:inline-block}
 }
+#splash{position:fixed;inset:0;z-index:400;background:linear-gradient(140deg,#1e1b4b 0%,#4c1d95 35%,#2563eb 70%,#06b6d4 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none}
+.slogo{font-size:60px;font-weight:900;color:#fff;letter-spacing:4px;animation:pop 1.2s ease infinite alternate;text-shadow:0 6px 30px rgba(0,0,0,.5)}
+.slogo span{background:linear-gradient(180deg,#fde68a,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes pop{from{transform:scale(1)}to{transform:scale(1.07)}}
+.ssub{color:#e0e7ff;font-size:15px}
+.sbar{width:180px;height:8px;border-radius:6px;background:rgba(255,255,255,.25);overflow:hidden}
+.sbar i{display:block;height:100%;width:40%;border-radius:6px;background:#fff;animation:load 1.1s linear infinite}
+@keyframes load{from{transform:translateX(-320%)}to{transform:translateX(220%)}}
+#doors{position:fixed;inset:0;z-index:300}
+#doors.hidden{display:none}
+.dp{position:absolute;top:0;bottom:0;width:51%;transition:transform .95s ease}
+#dpR{right:0;background:linear-gradient(160deg,#1e1b4b,#4c1d95)}
+#dpL{left:0;background:linear-gradient(200deg,#1e40af,#06b6d4)}
+#doors.open #dpR{transform:translateX(110%)}
+#doors.open #dpL{transform:translateX(-110%)}
+.dlogo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:42px;font-weight:900;transition:opacity .4s}
+#doors.open .dlogo{opacity:0}
 </style>
 </head>
 <body>
+<div id="splash"><div class="slogo">3AS <span>ADMIN</span></div><div class="ssub">Gestion • Codes • Messagerie</div><div class="sbar"><i></i></div></div>
+<div id="doors" class="hidden"><div class="dp" id="dpR"></div><div class="dp" id="dpL"></div><div class="dlogo">3AS ADMIN<br><small style="font-size:18px">👋</small></div></div>
 <!-- ÉCRAN VERROUILLÉ -->
 <div id="lock"><div class="lockbox">
 <h2>🔐 Admin 3AS LG</h2>
@@ -135,7 +155,7 @@ function initials(p,n){return ((p||'?')[0]+(n||'?')[0]).toUpperCase()}
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function unlock(){
  if(Date.now()<lockUntil)return $('pwerr').textContent='Patiente '+Math.ceil((lockUntil-Date.now())/1000)+'s…';
- if(await sha($('pw').value)===ADMIN_HASH){sessionStorage.setItem('adm_auth','1');$('lock').style.display='none';init()}
+ if(await sha($('pw').value)===ADMIN_HASH){sessionStorage.setItem('adm_auth','1');playDoors(()=>{$('lock').style.display='none';init()})}
  else{lockN++;$('pwerr').textContent='Mot de passe incorrect ('+lockN+'/3)';$('pw').value='';if(lockN>=3){lockUntil=Date.now()+30000;lockN=0;$('pwerr').textContent='Bloqué 30s.'}}
 }
 if(sessionStorage.getItem('adm_auth')==='1'){$('lock').style.display='none'}
@@ -240,6 +260,9 @@ function renderConv(live){
 }
 async function send(){if(!cur)return alert('Choisis une conversation');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
 async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value)return alert('Matière+Chapitre+Contenu requis');const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error)return alert(error.message);alert('Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
+function playDoors(next){const d=$('doors');d.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));setTimeout(()=>{d.classList.add('hidden');d.classList.remove('open');next()},1150)}
+window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
+setTimeout(()=>{const s=$('splash');if(s)s.classList.add('hide')},3500);
 if(sessionStorage.getItem('adm_auth')==='1')init();
 </script>
 </body>
