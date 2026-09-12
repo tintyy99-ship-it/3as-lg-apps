@@ -98,6 +98,14 @@ drop policy if exists "anon write courses" on public.courses;
 create policy "anon write courses" on public.courses
   for insert to anon, authenticated with check (true);
 
+drop policy if exists "anon delete courses" on public.courses;
+create policy "anon delete courses" on public.courses
+  for delete to anon, authenticated using (true);
+
+drop policy if exists "anon update courses" on public.courses;
+create policy "anon update courses" on public.courses
+  for update to anon, authenticated using (true) with check (true);
+
 -- ---------- Realtime ----------
 -- Dans Dashboard > Database > Replication : activer
 -- students, messages, courses pour Supabase Realtime.

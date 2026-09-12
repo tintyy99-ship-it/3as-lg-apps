@@ -22,8 +22,11 @@ button:active{transform:translateY(4px);border-bottom-width:1px;box-shadow:0 1px
 button.ghost{background:linear-gradient(180deg,#64748b,#334155);border-bottom-color:#0f172a;box-shadow:0 5px 0 rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.4)}button.green{background:linear-gradient(180deg,#4ade80,#15803d);border-bottom-color:#14532d;box-shadow:0 5px 0 rgba(20,83,45,.7),0 8px 16px rgba(0,0,0,.3)}button.red{background:linear-gradient(180deg,#f87171,#b91c1c);border-bottom-color:#7f1d1d;box-shadow:0 5px 0 rgba(127,29,29,.7),0 8px 16px rgba(0,0,0,.3)}button.amber{background:linear-gradient(180deg,#fbbf24,#b45309);border-bottom-color:#78350f;box-shadow:0 5px 0 rgba(120,53,15,.7),0 8px 16px rgba(0,0,0,.3)}
 table{width:100%;font-size:14px;border-collapse:collapse}
 td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 150px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+.tablewrap table{min-width:620px}
+.tag{display:inline-block;background:#334155;border-radius:12px;padding:1px 8px;font-size:12px;white-space:nowrap}
 .stat{background:#020617;border-radius:10px;padding:12px;text-align:center}
 .stat b{font-size:22px;display:block}
 .small{font-size:12px;color:#94a3b8}.hidden{display:none}
@@ -40,8 +43,8 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 .cbadge{background:#dc2626;color:#fff;font-size:11px;min-width:20px;height:20px;border-radius:10px;text-align:center;line-height:20px;padding:0 5px}
 .sdot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .chat{flex:1;background:#020617;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
-.chathead{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #1e293b}
-.chathead .btns{display:flex;gap:6px}
+.chathead{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #1e293b;flex-wrap:wrap}
+.chathead .btns{display:flex;gap:6px;flex-wrap:wrap}
 .chathead .btns button{width:auto;padding:6px 10px;font-size:12px}
 .chatbox{flex:1;max-height:380px;min-height:260px;overflow-y:auto;display:flex;flex-direction:column;padding:10px}
 .msg{padding:8px 12px;border-radius:16px;margin:4px 0;max-width:80%;font-size:14px;line-height:1.35;word-wrap:break-word}
@@ -64,6 +67,17 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
  .chat{display:none}
  .chat.show{display:flex}
  .backbtn{display:inline-block}
+}
+@media(max-width:480px){
+ main{padding:8px 8px 60px}
+ .card{padding:10px;margin:8px 0;border-radius:12px}
+ .grid{grid-template-columns:1fr 1fr;gap:8px}
+ .stat{padding:8px}.stat b{font-size:18px}
+ h2{font-size:19px}h3{font-size:16px}
+ table{font-size:13px}td,th{padding:6px}
+ input,select,textarea,button{font-size:14px;padding:9px}
+ .chatbox{max-height:300px;min-height:200px}
+ .slogo{font-size:44px}.dlogo{font-size:30px}
 }
 #splash{position:fixed;inset:0;z-index:400;background:linear-gradient(140deg,#1e1b4b 0%,#4c1d95 35%,#2563eb 70%,#06b6d4 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
 #splash.hide{opacity:0;pointer-events:none}
@@ -125,7 +139,7 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </div>
 
 <div class="card"><h3>👥 Élèves</h3><input id="q" placeholder="Rechercher..." oninput="render()">
-<div style="overflow:auto"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>État</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>État</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
 </div>
 
 <div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
@@ -148,10 +162,19 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <textarea id="simp" placeholder="Explication simplifiée débutant"></textarea>
 <button onclick="addCourse()">Publier cours</button>
 </div>
+
+<div class="card"><h3>🗂️ Gérer cours <span class="small" id="nbcours"></span></h3>
+<p class="small">Supprimer un cours, toute une section ou toute une matière. Irréversible, aussi effacé de Supabase.</p>
+<div class="row"><input id="qc2" placeholder="🔍 Rechercher cours..." oninput="renderCoursesAdmin()"><select id="fmat" onchange="renderCoursesAdmin()"><option value="">Toutes matières</option></select></div>
+<div class="row"><select id="delSec"></select><button class="red" onclick="deleteSectionUI()">🗑️ Supprimer section</button></div>
+<div class="row"><select id="delMat"></select><button class="red" onclick="deleteMatiereUI()">🗑️ Supprimer matière</button></div>
+<div class="tablewrap"><table><thead><tr><th>Matière</th><th>Chapitre</th><th>Section</th><th>Trim.</th><th>Action</th></tr></thead><tbody id="tcours"></tbody></table></div>
+<p class="small">⚠️ Si la suppression échoue : exécute <b>supabase/allow_delete_courses.sql</b> dans Supabase SQL Editor (1 fois).</p>
+</div>
 </main>
 <div id="toast"></div>
 <div id="modal" class="hidden"><div class="mbox"><h3 id="mtitle">⚠️ Confirmer ?</h3><p class="small" id="mtext"></p><div class="row"><button class="red" id="mok">Oui</button><button class="ghost" onclick="closeModal()">Non</button></div></div></div>
-<div class="ver">3AS Admin v1.9 — suppression élève ✅</div>
+<div class="ver">3AS Admin v1.10 — suppression élèves + cours ✅</div>
 
 <script>
 window.__booted=false;
@@ -161,7 +184,7 @@ setTimeout(function(){
 },6000);
 </script>
 <script>
-let sb=null,students=[],msgs=[],cur=null,online=false,lockN=0,lockUntil=0;
+let sb=null,students=[],msgs=[],courses=[],cur=null,online=false,lockN=0,lockUntil=0;
 const ADMIN_ID='admin';
 const ADMIN_HASH='5db4f9e3587a9752fc2df8e9517d41dd1459d1d3cd2393c1794479875ee598b4';
 const DEFAULT_SB_URL='https://xvbswwlphdjtviufwcsx.supabase.co';
@@ -194,11 +217,11 @@ function init(){
  if(!u||!k){setNet(false);return}
  try{sb=window.supabase.createClient(u,k)}catch(e){return}
  refresh();
- try{sb.channel('adm').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMsgs(true)).on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).subscribe()}catch(e){}
+  try{sb.channel('adm').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMsgs(true)).on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).on('postgres_changes',{event:'*',schema:'public',table:'courses'},()=>loadCourses()).subscribe()}catch(e){}
  setInterval(()=>loadMsgs(true),12000);setInterval(ping,30000);ping();
 }
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
-async function refresh(){await loadRetention();await loadStudents();await loadMsgs(false);try{const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}catch(e){}}
+async function refresh(){await loadRetention();await loadStudents();await loadMsgs(false);await loadCourses();}
 async function loadStudents(){
  const {data}=await sb.from('students').select('*').order('date_creation',{ascending:false});
  students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
@@ -299,6 +322,53 @@ async function deleteChat(id){const s=students.find(x=>x.id===id);askConfirm(`Su
 function askDeleteAll(){askConfirm('Supprimer TOUS les messages de TOUS les élèves (2 côtés) ? Irréversible !',async()=>{const {error}=await sb.from('messages').delete().neq('id','00000000-0000-0000-0000-000000000000');if(error)return toast(error.message,false);toast('🗑️ Tous les messages supprimés');loadMsgs(false)})}
 async function send(){if(!cur){toast('Choisis une conversation',false);return}const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
 async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value){toast('Matière+Chapitre+Contenu requis',false);return}const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error){toast(error.message,false);return}toast('📚 Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
+async function verifyCourseDelete(res,okMsg){
+ if(res.error)return toast('❌ '+res.error.message,false);
+ if(!res.data||!res.data.length)return toast('⚠️ Suppression bloquée par Supabase (RLS). Exécute supabase/allow_delete_courses.sql dans SQL Editor.',false);
+ toast(okMsg);refresh();
+}
+async function loadCourses(){
+ if(!sb)return;
+ const {data}=await sb.from('courses').select('id,matiere,chapitre,section,trimestre').order('matiere').order('chapitre');
+ courses=data||[];$('n4').textContent=courses.length;renderCoursesAdmin();
+}
+function renderCoursesAdmin(){
+ const q=(($('qc2')||{}).value||'').toLowerCase(),fm=($('fmat')||{}).value||'';
+ const mats=[...new Set(courses.map(c=>c.matiere).filter(Boolean))].sort();
+ const secs=[...new Set(courses.map(c=>c.section).filter(Boolean))].sort();
+ if($('fmat'))$('fmat').innerHTML='<option value="">Toutes matières ('+courses.length+')</option>'+mats.map(m=>`<option value="${esc(m)}" ${fm===m?'selected':''}>${esc(m)}</option>`).join('');
+ if($('delSec'))$('delSec').innerHTML=secs.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')||'<option value="">(aucune section)</option>';
+ if($('delMat'))$('delMat').innerHTML=mats.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')||'<option value="">(aucune matière)</option>';
+ const list=courses.filter(c=>(!fm||c.matiere===fm)&&(!q||((c.chapitre||'')+(c.matiere||'')+(c.section||'')).toLowerCase().includes(q)));
+ if($('nbcours'))$('nbcours').textContent='— '+list.length+' / '+courses.length;
+ if($('tcours'))$('tcours').innerHTML=list.map(c=>`<tr>
+ <td><span class="tag">${esc(c.matiere)}</span></td><td>${esc(c.chapitre)}</td>
+ <td>${esc(c.section||'—')}</td><td>${c.trimestre||'—'}</td>
+ <td><button class="red" onclick="deleteCourse('${c.id}')">🗑️</button></td></tr>`).join('')||'<tr><td colspan="5" class="small">Aucun cours.</td></tr>';
+}
+async function deleteCourse(id){
+ const c=courses.find(x=>x.id===id);
+ askConfirm('Supprimer le cours « '+(c?c.chapitre:'?')+' » ('+(c?c.matiere:'')+') de Supabase ? Irréversible !',async()=>{
+  const res=await sb.from('courses').delete().eq('id',id).select('id');
+  verifyCourseDelete(res,'🗑️ Cours supprimé de Supabase ✅');
+ })
+}
+function deleteSectionUI(){
+ const sec=($('delSec')||{}).value;if(!sec){toast('Aucune section',false);return}
+ const n=courses.filter(c=>c.section===sec).length;
+ askConfirm('Supprimer toute la section « '+sec+' » ('+n+' cours) de Supabase ? Irréversible !',async()=>{
+  const res=await sb.from('courses').delete().eq('section',sec).select('id');
+  verifyCourseDelete(res,'🗑️ Section « '+sec+' » supprimée ('+(res.data||[]).length+' cours) ✅');
+ })
+}
+function deleteMatiereUI(){
+ const mat=($('delMat')||{}).value;if(!mat){toast('Aucune matière',false);return}
+ const n=courses.filter(c=>c.matiere===mat).length;
+ askConfirm('Supprimer toute la matière « '+mat+' » ('+n+' cours) de Supabase ? Irréversible !',async()=>{
+  const res=await sb.from('courses').delete().eq('matiere',mat).select('id');
+  verifyCourseDelete(res,'🗑️ Matière « '+mat+' » supprimée ('+(res.data||[]).length+' cours) ✅');
+ })
+}
 function playDoors(next){const d=$('doors');d.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));d.onclick=()=>{d.classList.add('hidden');d.classList.remove('open')};setTimeout(()=>{d.classList.add('hidden');d.classList.remove('open');if(next)next()},850)}
 window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
 setTimeout(()=>{const s=$('splash');if(s)s.classList.add('hide')},3500);

@@ -8,11 +8,13 @@ Les vraies cles sont dans : GitHub > Settings > Secrets and variables > Actions
 Repo : https://github.com/tintyy99-ship-it/3as-lg-apps
 Branche : main
 Chemins :
-  admin-app/web/index.html   (Admin PWA, bouton Supprimer eleve v1.9)
-  eleve-app/web/index.html   (Eleve PWA)
+  admin-app/web/index.html   (Admin PWA v1.10 : boutons Supprimer eleve + cours/section/matiere)
+  eleve-app/web/index.html   (Eleve PWA v1.10)
   android/eleve/             (module Gradle Eleve)
   android/admin/             (module Gradle Admin)
-  dist/v1.9/                 (APK/AAB signes v1.9 + CHECKSUMS + README)
+  dist/v1.10/                (APK/AAB signes v1.10 + CHECKSUMS + README)
+  supabase/schema.sql        (schema + policies delete/update courses)
+  supabase/allow_delete_courses.sql (migration a executer 1 fois en SQL Editor)
 Workflow : .github/workflows/build-apk.yml (Build APKs, E2E + Gradle)
 Secrets CI (noms uniquement, valeurs hors Git) :
   SUPABASE_ANON_KEY, ADMIN_PW,
@@ -27,13 +29,13 @@ Realtime : students, messages, courses
 Cle ANON : voir GitHub Secrets SUPABASE_ANON_KEY (jamais ici).
 
 --- Apps Android ---
-Eleve : applicationId org.lg3as.eleve, versionCode 9, versionName 1.9
-Admin : applicationId org.lg3as.admin, versionCode 9, versionName 1.9
+Eleve : applicationId org.lg3as.eleve, versionCode 10, versionName 1.10
+Admin : applicationId org.lg3as.admin, versionCode 10, versionName 1.10
 compileSdk 35, targetSdk 35, minSdk 24
-Fichiers v1.9 (dist/v1.9/) :
-  3AS-LG-Eleve-v1.9.apk / -debug.apk / .aab
-  3AS-LG-Admin-v1.9.apk / -debug.apk / .aab
-Verif integrite : sha256sum -c dist/v1.9/CHECKSUMS.sha256
+Fichiers v1.10 (dist/v1.10/) :
+  3AS-LG-Eleve-v1.10.apk / -debug.apk / .aab
+  3AS-LG-Admin-v1.10.apk / -debug.apk / .aab
+Verif integrite : sha256sum -c dist/v1.10/CHECKSUMS.sha256
 
 --- Signature (infos publiques) ---
 Keystore : 3as-upload.keystore, alias 3as-upload, RSA 2048
