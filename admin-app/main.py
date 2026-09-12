@@ -75,6 +75,21 @@ def regen_auto(student_id):
     return api("students", method="PATCH", body={"code_reference": gen_code()},
                params={"id": f"eq.{student_id}"})
 
+def supprimer_eleve(student_id):
+    """Supprime définitivement un élève + ses messages de Supabase.
+    1) supprime messages (sécurité si cascade absente)
+    2) supprime student. Retourne True si OK.
+    """
+    # messages d'abord (ignore erreur si aucun)
+    try:
+        api("messages", method="DELETE", params={"student_id": f"eq.{student_id}"})
+    except Exception:
+        pass
+    api("students", method="DELETE", params={"id": f"eq.{student_id}"})
+    # vérif : l'élève ne doit plus exister
+    rest = api("students", params={"id": f"eq.{student_id}", "select": "id"})
+    return len(rest) == 0
+
 try:
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
@@ -94,11 +109,26 @@ try:
             btn.bind(on_press=self.do_create)
             root.add_widget(self.nom); root.add_widget(self.prenom)
             root.add_widget(btn); root.add_widget(self.info)
+            # --- suppression élève ---
+            self.del_id = TextInput(hint_text="ID élève à supprimer (uuid)", size_hint_y=None, height=45)
+            btn_del = Button(text="🗑️ Supprimer élève définitivement", size_hint_y=None, height=50)
+            btn_del.bind(on_press=self.do_delete)
+            root.add_widget(self.del_id); root.add_widget(btn_del)
             return root
         def do_create(self, *_):
             try:
                 s = create_student(self.nom.text, self.prenom.text)
                 self.info.text = "Code: " + s.get("code_reference", "?")
+            except Exception as e:
+                self.info.text = "Erreur: " + str(e)[:200]
+        def do_delete(self, *_):
+            try:
+                sid = self.del_id.text.strip()
+                if not sid:
+                    self.info.text = "Colle l'ID élève à supprimer."
+                    return
+                ok = supprimer_eleve(sid)
+                self.info.text = "🗑️ Élève supprimé ✅" if ok else "❌ Échec suppression"
             except Exception as e:
                 self.info.text = "Erreur: " + str(e)[:200]
 

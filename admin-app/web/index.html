@@ -151,7 +151,7 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </main>
 <div id="toast"></div>
 <div id="modal" class="hidden"><div class="mbox"><h3 id="mtitle">⚠️ Confirmer ?</h3><p class="small" id="mtext"></p><div class="row"><button class="red" id="mok">Oui</button><button class="ghost" onclick="closeModal()">Non</button></div></div></div>
-<div class="ver">3AS Admin v1.8</div>
+<div class="ver">3AS Admin v1.9 — suppression élève ✅</div>
 
 <script>
 window.__booted=false;
@@ -209,12 +209,13 @@ function render(){
  $('tb').innerHTML=students.filter(s=>((s.nom||'')+(s.prenom||'')+(s.code_reference||'')).toLowerCase().includes(q)).map(s=>`<tr>
  <td>${esc(s.prenom)} ${esc(s.nom)}</td><td><b>${esc(s.code_reference)}</b></td>
  <td>${(s.date_expiration_code||'').slice(0,10)}</td><td><span class="sdot" style="background:${s.statut_actif?'#4ade80':'#f87171'}"></span> ${s.statut_actif?'actif':'suspendu'}</td>
- <td style="min-width:250px">
- <button class="ghost" onclick="prolong('${s.id}',30)">+30j</button>
- <button class="ghost" onclick="prolong('${s.id}',90)">+90j</button>
- ${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔ Suspendre</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅ Réactiver</button>`}
- <button class="amber" onclick="openChat('${s.id}')">💬</button>
- </td></tr>`).join('');
+  <td style="min-width:250px">
+  <button class="ghost" onclick="prolong('${s.id}',30)">+30j</button>
+  <button class="ghost" onclick="prolong('${s.id}',90)">+90j</button>
+  ${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔ Suspendre</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅ Réactiver</button>`}
+  <button class="amber" onclick="openChat('${s.id}')">💬</button>
+  <button class="red" onclick="supprimerEleve('${s.id}')">🗑️ Supprimer</button>
+  </td></tr>`).join('');
 }
 /* ---------- COMPTES (code auto) ---------- */
 async function createStudent(){
@@ -229,6 +230,17 @@ async function createStudent(){
 async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());const {error}=await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);if(error)return toast(error.message,false);toast(`✅ Prolongé de ${j} jours`);refresh();if(cur===id)openChat(id)}
 async function suspendre(id){askConfirm('Suspendre ce code ? L’élève ne pourra plus se connecter.',async()=>{const {error}=await sb.from('students').update({statut_actif:false}).eq('id',id);if(error)return toast(error.message,false);toast('⛔ Code suspendu');refresh();if(cur===id)openChat(id)})}
 async function reprendre(id){const {error}=await sb.from('students').update({statut_actif:true}).eq('id',id);if(error)return toast(error.message,false);toast('✅ Code réactivé');refresh();if(cur===id)openChat(id)}
+async function supprimerEleve(id){
+ const s=students.find(x=>x.id===id);
+ const label=s?((s.prenom||'')+' '+(s.nom||'')+' ('+(s.code_reference||'')+')'):'cet élève';
+ askConfirm('Supprimer définitivement '+label+' ? Compte + messages effacés de Supabase. Irréversible !',async()=>{
+  try{await sb.from('messages').delete().eq('student_id',id)}catch(e){}
+  const {error}=await sb.from('students').delete().eq('id',id);
+  if(error)return toast('❌ '+error.message,false);
+  if(cur===id){cur=null;try{if((location.hash||'').startsWith('#/chat/'))location.hash='#/'}catch(e){}$('chathead').innerHTML='<span class="small">← Sélectionne un élève dans la liste.</span>';$('conv').innerHTML='';backInbox()}
+  toast('🗑️ Élève supprimé de Supabase ✅');refresh();
+ })
+}
 /* ---------- MESSAGERIE MESSENGER ---------- */
 let RET='keep';
 async function loadRetention(){try{const {data}=await sb.from('settings').select('value').eq('key','retention').single();RET=data?data.value:'keep'}catch(e){RET='keep'}$('ret').value=RET;$('ephlbl').classList.toggle('hidden',RET==='keep')}
@@ -266,7 +278,7 @@ async function openChat(id,fromHash){
  $('chathead').innerHTML=`<button class="ghost backbtn" style="display:inline-block;width:auto" onclick="backInbox()">←</button>
  <div class="cav" style="background:${avColor(s.prenom+s.nom)}">${initials(s.prenom,s.nom)}</div>
  <div style="flex:1"><b>${esc(s.prenom)} ${esc(s.nom)}</b><br><span class="small">${esc(s.code_reference)} • expire ${(s.date_expiration_code||'').slice(0,10)} • ${s.statut_actif?'✅ actif':'⛔ suspendu'}</span></div>
- <div class="btns">${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅</button>`}<button class="ghost" onclick="prolong('${s.id}',30)">+30j</button><button class="red" onclick="deleteChat('${s.id}')">🗑️</button></div>`;
+  <div class="btns">${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅</button>`}<button class="ghost" onclick="prolong('${s.id}',30)">+30j</button><button class="red" onclick="deleteChat('${s.id}')">🗑️</button><button class="red" onclick="supprimerEleve('${s.id}')" title="Supprimer l’élève définitivement">❌ Élève</button></div>`;
  $('inboxPane').classList.add('hide');$('chatPane').classList.add('show');
  for(const m of msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu)){await sb.from('messages').update({lu:true}).eq('id',m.id)}
  await loadMsgs(false);
