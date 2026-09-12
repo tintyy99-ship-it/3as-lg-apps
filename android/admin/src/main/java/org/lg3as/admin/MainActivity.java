@@ -1,9 +1,15 @@
 package org.lg3as.admin;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -13,6 +19,37 @@ public class MainActivity extends Activity {
     private WebView wv;
     private boolean backOnce = false;
 
+    /** Ouvre les liens externes (Telegram, navigateur) hors WebView. */
+    private boolean openExternal(String url) {
+        if (url == null) return false;
+        if (url.startsWith("file:///android_asset/") || url.startsWith("about:")) return false;
+        try {
+            Uri u = Uri.parse(url);
+            String host = u.getHost() != null ? u.getHost().toLowerCase() : "";
+            if (host.equals("t.me") || host.endsWith(".t.me")) {
+                String domain = "";
+                if (u.getPathSegments() != null && !u.getPathSegments().isEmpty()) {
+                    domain = u.getPathSegments().get(0);
+                }
+                if (!domain.isEmpty()) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=" + domain)));
+                        return true;
+                    } catch (ActivityNotFoundException ignored) {
+                        // Telegram absent -> repli https ci-dessous
+                    }
+                }
+            }
+            startActivity(new Intent(Intent.ACTION_VIEW, u));
+            return true;
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Aucune application pour ouvrir ce lien", Toast.LENGTH_SHORT).show();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,8 +58,31 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
-        wv.setWebViewClient(new WebViewClient());
-        wv.setWebChromeClient(new android.webkit.WebChromeClient());
+        s.setSupportMultipleWindows(true);
+        wv.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return openExternal(request.getUrl().toString());
+            }
+
+            @Override
+            @SuppressWarnings("deprecation")
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return openExternal(url);
+            }
+        });
+        wv.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                // target="_blank" -> ouvre hors WebView au lieu d'une fenetre invisible
+                WebView.HitTestResult r = view.getHitTestResult();
+                String url = r != null ? r.getExtra() : null;
+                if (url != null && openExternal(url)) {
+                    return false;
+                }
+                return super.onCreateWindow(view, isDialog, isUserGesture, resultMsg);
+            }
+        });
         setContentView(wv);
         if (savedInstanceState != null) {
             wv.restoreState(savedInstanceState);
