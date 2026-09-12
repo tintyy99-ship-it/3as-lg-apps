@@ -227,7 +227,8 @@ function logout(){""", 1)
 
 old = "const MAT_COLORS={"
 assert old in h, "matcolors"
-h = h.replace(old, "const MAT_COEF={\"الألمانية\":6,\"الإسبانية\":6,\"الإيطالية\":6,\"الإنجليزية\":4,\"الفرنسية\":4,\"العربية\":2,\"التاريخ\":2,\"الجغرافيا\":2,\"العلوم الإسلامية\":2,\"الأمازيغية\":2,\"الفلسفة\":0,\"الرياضيات\":0};\nconst MAT_COLORS={", 1)
+if 'const MAT_COEF=' not in h:
+    h = h.replace(old, "const MAT_COEF=" + open('/tmp/matcoef.txt', encoding='utf-8').read().strip() + ";\nconst MAT_COLORS={", 1)
 
 # boot : applyLang au lieu de applyTheme seul + fermer drawer
 old = " $('login').classList.add('hidden');$('app').classList.remove('hidden');$('navbar').classList.remove('hidden');\n applyTheme();"

@@ -141,6 +141,13 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </main>
 
 <script>
+window.__booted=false;
+setTimeout(function(){
+ var s=document.getElementById('splash'); if(s) s.style.display='none';
+ if(!window.__booted){var d=document.createElement('div');d.style.cssText='background:#b91c1c;color:#fff;padding:14px;text-align:center;font-weight:bold';d.innerHTML='&#9888;&#65039; Erreur. Mets &agrave; jour "Android System WebView" depuis Play Store puis rouvre l\'appli.';document.body.insertBefore(d,document.body.firstChild);}
+},6000);
+</script>
+<script>
 let sb=null,students=[],msgs=[],cur=null,online=false,lockN=0,lockUntil=0;
 const ADMIN_ID='admin';
 const ADMIN_HASH='5db4f9e3587a9752fc2df8e9517d41dd1459d1d3cd2393c1794479875ee598b4';
@@ -264,6 +271,7 @@ function playDoors(next){const d=$('doors');d.classList.remove('hidden');request
 window.addEventListener('load',()=>setTimeout(()=>$('splash').classList.add('hide'),1500));
 setTimeout(()=>{const s=$('splash');if(s)s.classList.add('hide')},3500);
 if(sessionStorage.getItem('adm_auth')==='1')init();
+window.__booted=true;
 </script>
 </body>
 </html>
