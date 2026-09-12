@@ -7,11 +7,44 @@ on:
       - 'android/**'
       - 'eleve-app/web/**'
       - 'admin-app/web/**'
+      - 'scripts/e2e.mjs'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright + Supabase client
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright @supabase/supabase-js
+          npx playwright install --with-deps chromium
+
+      - name: Serve both apps
+        run: |
+          nohup python3 -m http.server 8091 --directory eleve-app/web >/tmp/s1.log 2>&1 &
+          nohup python3 -m http.server 8092 --directory admin-app/web >/tmp/s2.log 2>&1 &
+          sleep 2
+          curl -s -o /dev/null -w "eleve %{http_code}\n" http://localhost:8091/
+          curl -s -o /dev/null -w "admin %{http_code}\n" http://localhost:8092/
+
+      - name: Run E2E (bloquant)
+        env:
+          SB_URL: https://xvbswwlphdjtviufwcsx.supabase.co
+          SB_ANON: ${{ secrets.SUPABASE_ANON_KEY }}
+          ADMIN_PW: ${{ secrets.ADMIN_PW }}
+        run: node scripts/e2e.mjs
+
   build:
+    needs: [e2e]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +70,18 @@ jobs:
 
       - name: Build debug APKs
         run: gradle --project-dir android :eleve:assembleDebug :admin:assembleDebug --stacktrace
+
+      - name: Verify launcher icons (aapt2, bloquant)
+        run: |
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt2 | head -1)
+          echo "aapt2: $AAPT"
+          for APK in android/eleve/build/outputs/apk/debug/eleve-debug.apk android/admin/build/outputs/apk/debug/admin-debug.apk; do
+            echo "== $APK"
+            $AAPT dump badging "$APK" | grep -E "^application:|^application-icon|launchable-activity" || (echo "BADGING ECHEC" && exit 1)
+          done
+          $AAPT dump badging android/eleve/build/outputs/apk/debug/eleve-debug.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ELEVE" && exit 1)
+          $AAPT dump badging android/admin/build/outputs/apk/debug/admin-debug.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ADMIN" && exit 1)
+          echo "ICONES OK"
 
       - name: Rename APKs
         run: |
