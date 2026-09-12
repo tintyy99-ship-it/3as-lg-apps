@@ -107,8 +107,8 @@ jobs:
             echo "== $APK"
             SIZE=$(stat -c%s "$APK")
             echo "taille: $SIZE octets"
-            # Un vrai WebView APK fait plusieurs Mo. 35 Ko = APK vide/casse (cf. bug v1.6).
-            if [ "$SIZE" -lt 500000 ]; then echo "APK SUSPECT TROP PETIT: $APK ($SIZE octets)" && exit 1; fi
+            # Garde anti-APK vide/casse : un build sain fait ~280 Ko, le v1.6 casse faisait 35 Ko.
+            if [ "$SIZE" -lt 100000 ]; then echo "APK SUSPECT TROP PETIT: $APK ($SIZE octets)" && exit 1; fi
             $AAPT dump badging "$APK" | grep -E "^application:|^application-icon|launchable-activity" || (echo "BADGING ECHEC $APK" && exit 1)
           done
           $AAPT dump badging android/eleve/build/outputs/apk/release/eleve-release.apk | grep -q "application-icon" || (echo "ICONE MANQUANTE ELEVE" && exit 1)
