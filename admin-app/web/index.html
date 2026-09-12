@@ -8,43 +8,87 @@
 <script src="supabase-config.js" onerror="void 0"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{background:#0f172a;color:#e2e8f0}
-header{background:#020617;padding:14px;text-align:center;border-bottom:1px solid #1e293b}
-main{max-width:900px;margin:auto;padding:12px 12px 60px}
-.card{background:#1e293b;border-radius:14px;padding:14px;margin:10px 0}
+body{background:linear-gradient(160deg,#020617 0%,#0f172a 50%,#3b2f6b 100%);background-attachment:fixed;color:#e2e8f0;min-height:100vh}
+header{background:linear-gradient(180deg,#000000,#1e1b4b);padding:14px;text-align:center;border-bottom:1px solid #4c1d95;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+header .st{font-size:12px;color:#94a3b8}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#64748b;margin-right:4px}
+.dot.on{background:#4ade80}.dot.off{background:#f87171}
+main{max-width:1000px;margin:auto;padding:12px 12px 60px}
+.card{background:linear-gradient(180deg,rgba(30,41,59,.97),rgba(15,23,42,.97));border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 10px 24px rgba(0,0,0,.45);border:1px solid rgba(148,163,184,.25)}
 input,select,textarea,button{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #334155;font-size:15px;background:#0f172a;color:#fff}
-button{background:#2563eb;border:none;font-weight:700;cursor:pointer}
-button.ghost{background:#334155}button.green{background:#16a34a}button.red{background:#dc2626}
+button{background:linear-gradient(180deg,#60a5fa,#1d4ed8);border:none;border-bottom:4px solid #172f7a;border-radius:12px;box-shadow:0 5px 0 rgba(10,20,60,.55),0 8px 16px rgba(0,0,0,.30);font-weight:700;color:#fff;cursor:pointer;transition:transform .06s,box-shadow .06s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+button:active{transform:translateY(4px);border-bottom-width:1px;box-shadow:0 1px 0 rgba(10,20,60,.55)}
+button.ghost{background:linear-gradient(180deg,#64748b,#334155);border-bottom-color:#0f172a;box-shadow:0 5px 0 rgba(0,0,0,.5),0 8px 16px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.4)}button.green{background:linear-gradient(180deg,#4ade80,#15803d);border-bottom-color:#14532d;box-shadow:0 5px 0 rgba(20,83,45,.7),0 8px 16px rgba(0,0,0,.3)}button.red{background:linear-gradient(180deg,#f87171,#b91c1c);border-bottom-color:#7f1d1d;box-shadow:0 5px 0 rgba(127,29,29,.7),0 8px 16px rgba(0,0,0,.3)}button.amber{background:linear-gradient(180deg,#fbbf24,#b45309);border-bottom-color:#78350f;box-shadow:0 5px 0 rgba(120,53,15,.7),0 8px 16px rgba(0,0,0,.3)}
 table{width:100%;font-size:14px;border-collapse:collapse}
 td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 .row{display:flex;gap:8px}.row>*{flex:1}
-.msg{padding:7px 10px;border-radius:10px;margin:5px 0;max-width:85%;font-size:14px}
-.me{background:#2563eb;margin-left:auto}.them{background:#334155}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
 .stat{background:#020617;border-radius:10px;padding:12px;text-align:center}
 .stat b{font-size:22px;display:block}
 .small{font-size:12px;color:#94a3b8}.hidden{display:none}
-@media(max-width:600px){.grid{grid-template-columns:1fr}.row{flex-direction:column}}
+/* ---- Messenger ---- */
+.msgwrap{display:flex;gap:10px;min-height:420px}
+.inbox{flex:0 0 300px;background:#020617;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.inbox input{margin:8px}
+.conv{padding:10px;border-bottom:1px solid #1e293b;cursor:pointer;display:flex;gap:10px;align-items:center}
+.conv:hover,.conv.active{background:#1e293b}
+.cav{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0}
+.cinfo{flex:1;min-width:0}
+.cinfo b{font-size:14px}
+.cinfo p{font-size:12px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+.cbadge{background:#dc2626;color:#fff;font-size:11px;min-width:20px;height:20px;border-radius:10px;text-align:center;line-height:20px;padding:0 5px}
+.sdot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chat{flex:1;background:#020617;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.chathead{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #1e293b}
+.chathead .btns{display:flex;gap:6px}
+.chathead .btns button{width:auto;padding:6px 10px;font-size:12px}
+.chatbox{flex:1;max-height:380px;min-height:260px;overflow-y:auto;display:flex;flex-direction:column;padding:10px}
+.msg{padding:8px 12px;border-radius:16px;margin:4px 0;max-width:80%;font-size:14px;line-height:1.35;word-wrap:break-word}
+.me{background:#2563eb;margin-left:auto;border-bottom-right-radius:4px}
+.them{background:#334155;margin-right:auto;border-bottom-left-radius:4px}
+.msg .t{display:block;font-size:11px;opacity:.7;margin-top:2px;text-align:right}
+.day{text-align:center;font-size:12px;color:#64748b;margin:10px 0 4px}
+.sendbar{display:flex;gap:6px;padding:10px;border-top:1px solid #1e293b}
+.sendbar button{width:64px}
+/* ---- Lock ---- */
+#lock{position:fixed;inset:0;background:#020617;z-index:99;display:flex;align-items:center;justify-content:center;padding:20px}
+.lockbox{background:#1e293b;border-radius:16px;padding:28px;max-width:360px;width:100%;text-align:center}
+.lockbox h2{margin-bottom:6px}
+.backbtn{display:none;width:auto;padding:6px 12px;font-size:13px;margin-bottom:6px}
+@media(max-width:700px){
+ .grid{grid-template-columns:1fr 1fr}.row{flex-direction:column}
+ .msgwrap{flex-direction:column}
+ .inbox{flex:1;max-height:300px}
+ .inbox.hide{display:none}
+ .chat{display:none}
+ .chat.show{display:flex}
+ .backbtn{display:inline-block}
+}
 </style>
 </head>
 <body>
-<header><h2>🛠️ 3AS LG — Admin</h2><p class="small">Gestion élèves • Codes • Cours • Messagerie</p></header>
+<!-- ÉCRAN VERROUILLÉ -->
+<div id="lock"><div class="lockbox">
+<h2>🔐 Admin 3AS LG</h2>
+<p class="small">Entre le mot de passe admin pour continuer.</p>
+<input id="pw" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')unlock()">
+<button onclick="unlock()">Déverrouiller</button>
+<p id="pwerr" class="small" style="color:#f87171"></p>
+</div></div>
+
+<header><h2>🛠️ 3AS LG — Admin</h2></header>
 <main>
-<div class="card" id="cfgCard">
-<h3>⚙️ Supabase</h3>
-<div class="row"><input id="url" placeholder="SUPABASE_URL"><input id="key" placeholder="ANON_KEY"></div>
-<button onclick="save()">Connecter</button> <span class="small" id="st"></span>
-</div>
+<div id="dberr" class="card hidden" style="border:1px solid #dc2626">⚠️ Connexion impossible, vérifie internet et relance l’application.</div>
 
 <div class="grid">
 <div class="stat">Élèves<b id="n1">0</b></div>
 <div class="stat">Actifs<b id="n2">0</b></div>
-<div class="stat">Messages<b id="n3">0</b></div>
+<div class="stat">Non lus<b id="n3">0</b></div>
 <div class="stat">Cours<b id="n4">0</b></div>
 </div>
 
 <div class="card"><h3>➕ Créer compte candidat (code généré auto)</h3>
-<p class="small">Aucun code prêt à l'emploi : le code de référence est généré automatiquement après la création du compte.</p>
+<p class="small">Aucun code prêt à l'emploi : le code de référence est généré automatiquement après la création.</p>
 <div class="row"><input id="nom" placeholder="Nom"><input id="prenom" placeholder="Prénom"></div>
 <div class="row"><input id="email" placeholder="Email (opt)"><select id="duree"><option value="30">30 jours</option><option value="90" selected>90 jours</option><option value="180">180 jours</option><option value="365">1 an</option></select></div>
 <button class="green" onclick="createStudent()">Créer le compte → Générer code auto</button>
@@ -52,13 +96,18 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </div>
 
 <div class="card"><h3>👥 Élèves</h3><input id="q" placeholder="Rechercher..." oninput="render()">
-<div style="overflow:auto"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>Actif</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div style="overflow:auto"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>État</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
 </div>
 
-<div class="card"><h3>💬 Messagerie</h3>
-<select id="sel" onchange="loadConv()"><option value="">— Choisir élève —</option></select>
-<div id="conv" style="max-height:300px;overflow:auto"></div>
-<div class="row"><input id="txt" placeholder="Message..."><button style="max-width:100px" onclick="send()">➤</button></div>
+<div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
+<div class="msgwrap">
+<div class="inbox" id="inboxPane"><input id="qc" placeholder="🔍 Rechercher…" oninput="renderInbox()"><div id="inbox" style="overflow-y:auto"></div></div>
+<div class="chat" id="chatPane">
+<div class="chathead" id="chathead"><span class="small">← Sélectionne un élève dans la liste.</span></div>
+<div id="conv" class="chatbox"></div>
+<div class="sendbar"><button class="ghost backbtn" onclick="backInbox()">←</button><input id="txt" placeholder="Écris un message…" onkeydown="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
+</div>
+</div>
 </div>
 
 <div class="card"><h3>📚 Ajouter cours</h3>
@@ -70,66 +119,118 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </main>
 
 <script>
-let sb=null,students=[],msgs=[];
+let sb=null,students=[],msgs=[],cur=null,online=false,lockN=0,lockUntil=0;
 const ADMIN_ID='admin';
+const ADMIN_HASH='5db4f9e3587a9752fc2df8e9517d41dd1459d1d3cd2393c1794479875ee598b4';
 const DEFAULT_SB_URL='https://xvbswwlphdjtviufwcsx.supabase.co';
-const DEFAULT_SB_KEY=''; // clé ANON à coller 1x via ⚙️ (stockée local, jamais commitée)
+const DEFAULT_SB_KEY='';
+const AVC=["#2563eb","#7c3aed","#dc2626","#059669","#ea580c","#0891b2","#92400e","#65a30d","#9333ea","#0d9488","#e11d48"];
 const $=id=>document.getElementById(id);
-function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
-function save(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());init()}
-function init(){
- const u=localStorage.getItem('SB_URL')||DEFAULT_SB_URL,k=localStorage.getItem('SB_KEY')||DEFAULT_SB_KEY;
- $('url').value=u;$('key').value=k;
- if(!u||!k){$('st').textContent='Non configuré';return}
- sb=window.supabase.createClient(u,k);$('st').textContent='Connecté ✅';refresh();
- sb.channel('adm').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>{loadMsgs()}).
- on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).subscribe();
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function avColor(name){let h=0;for(const c of (name||'?'))h=(h*31+c.charCodeAt(0))>>>0;return AVC[h%AVC.length]}
+function initials(p,n){return ((p||'?')[0]+(n||'?')[0]).toUpperCase()}
+/* ---------- VERROU ---------- */
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function unlock(){
+ if(Date.now()<lockUntil)return $('pwerr').textContent='Patiente '+Math.ceil((lockUntil-Date.now())/1000)+'s…';
+ if(await sha($('pw').value)===ADMIN_HASH){sessionStorage.setItem('adm_auth','1');$('lock').style.display='none';init()}
+ else{lockN++;$('pwerr').textContent='Mot de passe incorrect ('+lockN+'/3)';$('pw').value='';if(lockN>=3){lockUntil=Date.now()+30000;lockN=0;$('pwerr').textContent='Bloqué 30s.'}}
 }
-async function refresh(){await loadStudents();await loadMsgs();const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}
+if(sessionStorage.getItem('adm_auth')==='1'){$('lock').style.display='none'}
+/* ---------- CONFIG / CONNEXION ---------- */
+function cfg(){const w=(window.SB_CONFIG||{});return {url:w.SUPABASE_URL||localStorage.getItem('SB_URL')||DEFAULT_SB_URL,key:w.SUPABASE_ANON_KEY||localStorage.getItem('SB_KEY')||DEFAULT_SB_KEY}}
+function save(){localStorage.setItem('SB_URL',$('url').value.trim());localStorage.setItem('SB_KEY',$('key').value.trim());init()}
+function setNet(on){online=on;if(!on){const e=$('dberr');if(e)e.classList.remove('hidden')}}
+async function ping(){if(!sb){setNet(false);return}try{const r=await sb.from('courses').select('id').limit(1);setNet(!r.error)}catch(e){setNet(false)}}
+function init(){
+ const u=cfg().url,k=cfg().key;
+ if(!u||!k){setNet(false);return}
+ try{sb=window.supabase.createClient(u,k)}catch(e){return}
+ refresh();
+ try{sb.channel('adm').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMsgs(true)).on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).subscribe()}catch(e){}
+ setInterval(()=>loadMsgs(true),12000);setInterval(ping,30000);ping();
+}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
+async function refresh(){await loadStudents();await loadMsgs(false);try{const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}catch(e){}}
 async function loadStudents(){
  const {data}=await sb.from('students').select('*').order('date_creation',{ascending:false});
  students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
- $('sel').innerHTML='<option value="">— Choisir élève —</option>'+students.map(s=>`<option value="${s.id}">${s.prenom} ${s.nom} (${s.code_reference})</option>`).join('');
- render();
+ render();renderInbox();
 }
 function render(){
  const q=($('q').value||'').toLowerCase();
- $('tb').innerHTML=students.filter(s=>(s.nom+s.prenom+s.code_reference).toLowerCase().includes(q)).map(s=>`<tr>
- <td>${s.prenom} ${s.nom}</td><td><b>${s.code_reference}</b></td>
- <td>${(s.date_expiration_code||'').slice(0,10)}</td><td>${s.statut_actif?'✅ actif':'⛔ suspendu'}</td>
- <td style="min-width:260px">
+ $('tb').innerHTML=students.filter(s=>((s.nom||'')+(s.prenom||'')+(s.code_reference||'')).toLowerCase().includes(q)).map(s=>`<tr>
+ <td>${esc(s.prenom)} ${esc(s.nom)}</td><td><b>${esc(s.code_reference)}</b></td>
+ <td>${(s.date_expiration_code||'').slice(0,10)}</td><td><span class="sdot" style="background:${s.statut_actif?'#4ade80':'#f87171'}"></span> ${s.statut_actif?'actif':'suspendu'}</td>
+ <td style="min-width:250px">
  <button class="ghost" onclick="prolong('${s.id}',30)">+30j</button>
  <button class="ghost" onclick="prolong('${s.id}',90)">+90j</button>
- ${s.statut_actif
-   ? `<button class="red" onclick="suspendre('${s.id}')">⛔ Suspendre le code</button>`
-   : `<button class="green" onclick="reprendre('${s.id}')">✅ Réactiver le code</button>`}
- <button class="ghost" onclick="regen('${s.id}')">↻ Régénérer (auto)</button>
+ ${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔ Suspendre</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅ Réactiver</button>`}
+ <button class="amber" onclick="openChat('${s.id}')">💬</button>
  </td></tr>`).join('');
 }
+/* ---------- COMPTES (code auto) ---------- */
 async function createStudent(){
  const nom=$('nom').value.trim(),prenom=$('prenom').value.trim();if(!nom||!prenom)return alert('Nom+Prénom requis');
  const code=genCode(),jours=+$('duree').value;
  const exp=new Date(Date.now()+jours*864e5).toISOString();
- const {error}=await sb.from('students').insert({nom,prenom,email:$('email').value.trim(),code_reference:code,date_expiration_code:exp,statut_actif:true});
+ const {data,error}=await sb.from('students').insert({nom,prenom,email:$('email').value.trim(),code_reference:code,date_expiration_code:exp,statut_actif:true}).select();
  if(error)return alert(error.message);
- $('newcode').innerHTML=`✅ <b>${prenom} ${nom}</b> — Code: <b>${code}</b> (expire ${exp.slice(0,10)})`;
+ $('newcode').innerHTML=`✅ <b>${esc(prenom)} ${esc(nom)}</b> — Code généré : <b>${code}</b> (expire ${exp.slice(0,10)}) <button class="ghost" style="width:auto;padding:4px 10px" onclick="navigator.clipboard.writeText('${code}')">📋 Copier</button>`;
  $('nom').value=$('prenom').value=$('email').value='';refresh();
 }
-async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);refresh()}
-async function suspendre(id){if(!confirm('Suspendre ce code ? L’élève ne pourra plus se connecter.'))return;await sb.from('students').update({statut_actif:false}).eq('id',id);refresh()}
-async function reprendre(id){await sb.from('students').update({statut_actif:true}).eq('id',id);refresh()}
-async function toggleAct(id,v){await sb.from('students').update({statut_actif:v}).eq('id',id);refresh()}
-async function regen(id){const c=genCode();await sb.from('students').update({code_reference:c}).eq('id',id);alert('Nouveau code: '+c);refresh()}
-async function loadMsgs(){const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(200);msgs=(data||[]).reverse();$('n3').textContent=data?.length||0;loadConv()}
-function loadConv(){
- const id=$('sel').value;if(!id){$('conv').innerHTML='<p class="small">Sélectionne un élève.</p>';return}
- const c=msgs.filter(m=>m.student_id===id);
- $('conv').innerHTML=c.map(m=>`<div class="msg ${m.sender_id===ADMIN_ID?'me':'them'}">${m.contenu}<br><span class="small">${(m.timestamp||'').slice(0,16)}</span></div>`).join('')||'<p class="small">Aucun message.</p>';
- $('conv').scrollTop=9999;
+async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math.max(Date.now(),new Date(s.date_expiration_code||Date.now()).getTime());await sb.from('students').update({date_expiration_code:new Date(base+j*864e5).toISOString()}).eq('id',id);refresh();if(cur===id)openChat(id)}
+async function suspendre(id){if(!confirm('Suspendre ce code ? L’élève ne pourra plus se connecter.'))return;await sb.from('students').update({statut_actif:false}).eq('id',id);refresh();if(cur===id)openChat(id)}
+async function reprendre(id){await sb.from('students').update({statut_actif:true}).eq('id',id);refresh();if(cur===id)openChat(id)}
+/* ---------- MESSAGERIE MESSENGER ---------- */
+async function loadMsgs(live){
+ if(!sb)return;
+ const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(300);
+ msgs=(data||[]).reverse();
+ $('n3').textContent=(data||[]).filter(m=>m.receiver_id===ADMIN_ID&&!m.lu).length;
+ renderInbox();if(cur)renderConv(live);
 }
-async function send(){const id=$('sel').value;if(!id)return alert('Choisis un élève');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:id,contenu:t,student_id:id});loadMsgs()}
+function lastOf(id){const c=msgs.filter(m=>m.student_id===id);return c[c.length-1]}
+function unreadOf(id){return msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu).length}
+function fmtT(ts){return (ts||'').slice(11,16)}
+function renderInbox(){
+ const q=($('qc').value||'').toLowerCase();
+ const list=students.filter(s=>((s.prenom||'')+(s.nom||'')+(s.code_reference||'')).toLowerCase().includes(q));
+ $('inbox').innerHTML=list.map(s=>{
+  const l=lastOf(s.id),u=unreadOf(s.id);
+  return `<div class="conv ${cur===s.id?'active':''}" onclick="openChat('${s.id}')">
+  <div class="cav" style="background:${avColor(s.prenom+s.nom)}">${initials(s.prenom,s.nom)}</div>
+  <div class="cinfo"><b>${esc(s.prenom)} ${esc(s.nom)}</b> <span class="sdot" style="background:${s.statut_actif?'#4ade80':'#f87171'}"></span><p>${l?esc(l.contenu):'<i>Aucun message</i>'}</p></div>
+  <div>${u?`<div class="cbadge">${u}</div>`:''}<div class="small">${l?fmtT(l.timestamp):''}</div></div></div>`;
+ }).join('')||'<p class="small" style="padding:10px">Aucun élève.</p>';
+}
+async function openChat(id){
+ cur=id;
+ const s=students.find(x=>x.id===id);
+ renderInbox();
+ $('chathead').innerHTML=`<button class="ghost backbtn" style="display:inline-block;width:auto" onclick="backInbox()">←</button>
+ <div class="cav" style="background:${avColor(s.prenom+s.nom)}">${initials(s.prenom,s.nom)}</div>
+ <div style="flex:1"><b>${esc(s.prenom)} ${esc(s.nom)}</b><br><span class="small">${esc(s.code_reference)} • expire ${(s.date_expiration_code||'').slice(0,10)} • ${s.statut_actif?'✅ actif':'⛔ suspendu'}</span></div>
+ <div class="btns">${s.statut_actif?`<button class="red" onclick="suspendre('${s.id}')">⛔</button>`:`<button class="green" onclick="reprendre('${s.id}')">✅</button>`}<button class="ghost" onclick="prolong('${s.id}',30)">+30j</button></div>`;
+ $('inboxPane').classList.add('hide');$('chatPane').classList.add('show');
+ for(const m of msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu)){await sb.from('messages').update({lu:true}).eq('id',m.id)}
+ await loadMsgs(false);
+}
+function backInbox(){$('inboxPane').classList.remove('hide');$('chatPane').classList.remove('show')}
+function renderConv(live){
+ const list=msgs.filter(m=>m.student_id===cur);let lastDay='';
+ const box=$('conv');
+ const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<120;
+ box.innerHTML=list.map(m=>{
+  const mine=m.sender_id===ADMIN_ID;const d=(m.timestamp||'').slice(0,10);let sep='';
+  if(d!==lastDay){lastDay=d;sep=`<div class="day">${d}</div>`}
+  return sep+`<div class="msg ${mine?'me':'them'}">${esc(m.contenu)}<span class="t">${fmtT(m.timestamp)}${mine?(m.lu?' ✓✓':' ✓'):''}</span></div>`;
+ }).join('')||'<p class="small">Aucun message. Dis bonjour 👋</p>';
+ if(!live||nearBottom)box.scrollTop=99999;
+}
+async function send(){if(!cur)return alert('Choisis une conversation');const t=$('txt').value.trim();if(!t)return;$('txt').value='';await sb.from('messages').insert({sender_id:ADMIN_ID,receiver_id:cur,contenu:t,student_id:cur});loadMsgs(false)}
 async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value)return alert('Matière+Chapitre+Contenu requis');const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error)return alert(error.message);alert('Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
-init();
+if(sessionStorage.getItem('adm_auth')==='1')init();
 </script>
 </body>
 </html>
