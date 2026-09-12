@@ -2,12 +2,16 @@ package org.lg3as.admin;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private WebView wv;
+    private boolean backOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +40,15 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (wv != null && wv.canGoBack()) {
             wv.goBack();
-        } else {
-            super.onBackPressed();
+            backOnce = false;
+            return;
         }
+        if (backOnce) {
+            super.onBackPressed();
+            return;
+        }
+        backOnce = true;
+        Toast.makeText(this, "Appuie encore pour quitter", Toast.LENGTH_SHORT).show();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> backOnce = false, 2000);
     }
 }

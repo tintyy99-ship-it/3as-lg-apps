@@ -100,10 +100,12 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </div>
 
 <div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
+<div class="row"><select id="ret" onchange="saveRetention()"><option value="keep">💾 Garder les messages</option><option value="24h">🕐 Éphémère : 24h</option><option value="7d">🕐 Éphémère : 7 jours</option></select></div>
 <div class="msgwrap">
 <div class="inbox" id="inboxPane"><input id="qc" placeholder="🔍 Rechercher…" oninput="renderInbox()"><div id="inbox" style="overflow-y:auto"></div></div>
 <div class="chat" id="chatPane">
 <div class="chathead" id="chathead"><span class="small">← Sélectionne un élève dans la liste.</span></div>
+<div id="ephlbl" class="hidden" style="background:#451a03;color:#fcd34d;border-radius:8px;padding:6px 10px;font-size:12px;margin-bottom:6px;text-align:center">🕐 Messages éphémères activés</div>
 <div id="conv" class="chatbox"></div>
 <div class="sendbar"><button class="ghost backbtn" onclick="backInbox()">←</button><input id="txt" placeholder="Écris un message…" onkeydown="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
 </div>
@@ -151,7 +153,7 @@ function init(){
  setInterval(()=>loadMsgs(true),12000);setInterval(ping,30000);ping();
 }
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypto.getRandomValues(new Uint8Array(6)).forEach(b=>s+=c[b%c.length]);return s}
-async function refresh(){await loadStudents();await loadMsgs(false);try{const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}catch(e){}}
+async function refresh(){await loadRetention();await loadStudents();await loadMsgs(false);try{const {count}=await sb.from('courses').select('*',{count:'exact',head:true});$('n4').textContent=count||0}catch(e){}}
 async function loadStudents(){
  const {data}=await sb.from('students').select('*').order('date_creation',{ascending:false});
  students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
@@ -183,12 +185,18 @@ async function prolong(id,j){const s=students.find(x=>x.id===id);const base=Math
 async function suspendre(id){if(!confirm('Suspendre ce code ? L’élève ne pourra plus se connecter.'))return;await sb.from('students').update({statut_actif:false}).eq('id',id);refresh();if(cur===id)openChat(id)}
 async function reprendre(id){await sb.from('students').update({statut_actif:true}).eq('id',id);refresh();if(cur===id)openChat(id)}
 /* ---------- MESSAGERIE MESSENGER ---------- */
+let RET='keep';
+async function loadRetention(){try{const {data}=await sb.from('settings').select('value').eq('key','retention').single();RET=data?data.value:'keep'}catch(e){RET='keep'}$('ret').value=RET;$('ephlbl').classList.toggle('hidden',RET==='keep')}
+async function saveRetention(){RET=$('ret').value;await sb.from('settings').upsert({key:'retention',value:RET});loadMsgs(false)}
+function cutoff(){if(RET==='24h')return Date.now()-864e5;if(RET==='7d')return Date.now()-7*864e5;return 0}
 async function loadMsgs(live){
  if(!sb)return;
  const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(300);
  msgs=(data||[]).reverse();
  $('n3').textContent=(data||[]).filter(m=>m.receiver_id===ADMIN_ID&&!m.lu).length;
  renderInbox();if(cur)renderConv(live);
+ const cut=cutoff();
+ if(cut){const oldm=msgs.filter(m=>new Date(m.timestamp).getTime()<cut);for(const m of oldm){await sb.from('messages').delete().eq('id',m.id)}if(oldm.length){const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(300);msgs=(data||[]).reverse();renderInbox();if(cur)renderConv(live)}}
 }
 function lastOf(id){const c=msgs.filter(m=>m.student_id===id);return c[c.length-1]}
 function unreadOf(id){return msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu).length}
@@ -204,8 +212,10 @@ function renderInbox(){
   <div>${u?`<div class="cbadge">${u}</div>`:''}<div class="small">${l?fmtT(l.timestamp):''}</div></div></div>`;
  }).join('')||'<p class="small" style="padding:10px">Aucun élève.</p>';
 }
-async function openChat(id){
+window.addEventListener('hashchange',()=>{const m=(location.hash||'').match(/^#\/chat\/(.+)$/);if(m)openChat(m[1],true);else{cur=null;renderInbox();backInbox()}});
+async function openChat(id,fromHash){
  cur=id;
+ if(!fromHash){try{location.hash='#/chat/'+id}catch(e){}}
  const s=students.find(x=>x.id===id);
  renderInbox();
  $('chathead').innerHTML=`<button class="ghost backbtn" style="display:inline-block;width:auto" onclick="backInbox()">←</button>
@@ -216,7 +226,7 @@ async function openChat(id){
  for(const m of msgs.filter(m=>m.student_id===id&&m.receiver_id===ADMIN_ID&&!m.lu)){await sb.from('messages').update({lu:true}).eq('id',m.id)}
  await loadMsgs(false);
 }
-function backInbox(){$('inboxPane').classList.remove('hide');$('chatPane').classList.remove('show')}
+function backInbox(){if((location.hash||'').startsWith('#/chat/')){try{history.back();return}catch(e){}location.hash='#/'};$('inboxPane').classList.remove('hide');$('chatPane').classList.remove('show')}
 function renderConv(live){
  const list=msgs.filter(m=>m.student_id===cur);let lastDay='';
  const box=$('conv');
