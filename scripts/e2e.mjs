@@ -39,6 +39,9 @@ try {
   await page.goto(E_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#splash.hide', { timeout: 15000 });
   ok('eleve: splash disparaît', true);
+  // v1.15 : burger caché sur l'écran code (pas de menu avant login)
+  const burgerHiddenLogin = await page.locator('#burger.hidden').count();
+  ok('eleve: burger caché sur écran code', burgerHiddenLogin === 1);
   await page.fill('#code', CODE);
   await page.click('#lg-go');
   await page.waitForSelector('#app:not(.hidden)', { timeout: 20000 });
@@ -98,9 +101,16 @@ try {
   const suspBtn = pa.locator('button:has-text("Suspendre")').first();
   if (await suspBtn.count()) {
     await suspBtn.click();
-    await pa.locator('#mok').click();
-    await pa.waitForTimeout(1500);
-    const { data: s1 } = await sb.from('students').select('statut_actif').eq('id', studentId).single();
+    // v1.15 : suspension DIRECTE, sans modale de confirmation
+    const modalStillHidden = await pa.locator('#modal.hidden').count();
+    ok('admin: suspendre direct sans modale', modalStillHidden === 1);
+    let s1 = null;
+    for (let i = 0; i < 20; i++) {
+      await pa.waitForTimeout(1000);
+      const r = await sb.from('students').select('statut_actif').eq('id', studentId).single();
+      s1 = r.data;
+      if (s1 && s1.statut_actif === false) break;
+    }
     ok('admin: ⛔ suspendre fonctionne', s1 && s1.statut_actif === false);
     const reactBtn = pa.locator('button:has-text("Réactiver")').first();
     await reactBtn.click();
