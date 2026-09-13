@@ -77,10 +77,22 @@ try {
   await pa.locator('#lock button').click();
   await pa.waitForFunction(() => document.getElementById('lock').style.display === 'none', null, { timeout: 15000 });
   ok('admin: unlock mot de passe', true);
+  // menu hamburger : chaque catégorie s'affiche toute seule
+  await pa.click('#burger');
+  await pa.waitForSelector('#drawer:not(.closed)', { timeout: 5000 });
+  ok('admin: menu hamburger s\'ouvre', true);
+  await pa.click('#m-msg');
+  await pa.waitForSelector('#v-msg:not(.hidden)', { timeout: 5000 });
+  const msgHidden = await pa.locator('#v-eleves.hidden').count();
+  ok('admin: vue messagerie seule (élèves cachés)', msgHidden === 1);
   await pa.waitForSelector('#inbox', { timeout: 15000 });
   const inboxCount = await pa.locator('#inbox .conv').count();
   ok('admin: inbox chargée', inboxCount >= 1, String(inboxCount));
-  // suspendre / réactiver l'élève test depuis le tableau
+  // suspendre / réactiver l'élève test depuis le tableau (vue élèves)
+  await pa.click('#burger');
+  await pa.click('#m-eleves');
+  await pa.waitForSelector('#v-eleves:not(.hidden)', { timeout: 5000 });
+  ok('admin: vue élèves seule', true);
   await pa.fill('#q', 'E2ETest');
   await pa.waitForTimeout(500);
   const suspBtn = pa.locator('button:has-text("Suspendre")').first();
