@@ -105,6 +105,20 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 .mbox{background:#1e293b;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center;border:1px solid #dc2626}
 .mbox .row{display:flex;gap:8px}
 .ver{font-size:11px;color:#64748b;text-align:center;margin-top:14px}
+/* ---- Menu hamburger + vues par catégorie ---- */
+header{display:flex;align-items:center;gap:10px;text-align:left}
+header h2{flex:1;text-align:center;font-size:20px}
+#burger{width:auto;padding:8px 14px;font-size:20px;margin:0;flex-shrink:0}
+#drawerOv{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:190}
+#drawer{position:fixed;top:0;bottom:0;left:0;width:270px;max-width:82vw;background:#0f172a;z-index:191;transition:transform .3s ease;overflow-y:auto;padding:12px;border-right:1px solid #4c1d95;box-shadow:8px 0 24px rgba(0,0,0,.5)}
+#drawer.closed{transform:translateX(-105%)}
+.dhead{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:8px}
+.dhead span:last-child{cursor:pointer;font-size:18px;padding:4px 8px}
+.drow{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:10px;cursor:pointer;font-size:15px}
+.drow:hover{background:#1e293b}
+.drow.active{background:#1e293b;outline:2px solid #3b82f6;font-weight:800}
+.drow .cnt{margin-left:auto;font-size:12px;color:#94a3b8}
+.view.hidden{display:none}
 </style>
 </head>
 <body>
@@ -119,16 +133,28 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <p id="pwerr" class="small" style="color:#f87171"></p>
 </div></div>
 
-<header><h2>🛠️ 3AS LG — Admin</h2></header>
+<header><button id="burger" class="ghost" onclick="toggleMenu(true)">☰</button><h2>🛠️ 3AS LG — Admin</h2></header>
+<div id="drawerOv" class="hidden" onclick="toggleMenu(false)"></div>
+<aside id="drawer" class="closed">
+<div class="dhead"><span>📋 Menu</span><span onclick="toggleMenu(false)">✕</span></div>
+<div class="drow" id="m-home" onclick="go('home')">📊 <b>Accueil</b></div>
+<div class="drow" id="m-eleves" onclick="go('eleves')">👥 <b>Élèves</b><span class="cnt" id="m-n1"></span></div>
+<div class="drow" id="m-cours" onclick="go('cours')">📚 <b>Cours & Matières</b><span class="cnt" id="m-n4"></span></div>
+<div class="drow" id="m-msg" onclick="go('msg')">💬 <b>Messagerie</b><span class="cnt" id="m-n3"></span></div>
+</aside>
 <main>
 <div id="dberr" class="card hidden" style="border:1px solid #dc2626">⚠️ Connexion impossible, vérifie internet et relance l’application.</div>
 
+<section class="view" id="v-home">
 <div class="grid">
 <div class="stat">Élèves<b id="n1">0</b></div>
 <div class="stat">Actifs<b id="n2">0</b></div>
 <div class="stat">Non lus<b id="n3">0</b></div>
 <div class="stat">Cours<b id="n4">0</b></div>
 </div>
+<p class="small" style="text-align:center">☰ Ouvre le menu : chaque catégorie s'affiche toute seule.</p>
+</section>
+<section class="view hidden" id="v-eleves">
 
 <div class="card"><h3>➕ Créer compte candidat (code généré auto)</h3>
 <p class="small">Aucun code prêt à l'emploi : le code de référence est généré automatiquement après la création.</p>
@@ -141,7 +167,8 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <div class="card"><h3>👥 Élèves</h3><input id="q" placeholder="Rechercher..." oninput="render()">
 <div class="tablewrap"><table><thead><tr><th>Nom</th><th>Code</th><th>Expire</th><th>État</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
 </div>
-
+</section>
+<section class="view hidden" id="v-msg">
 <div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
 <div class="row"><button class="red" onclick="askDeleteAll()">🗑️ Tout supprimer (2 côtés)</button></div>
 <div class="row"><select id="ret" onchange="saveRetention()"><option value="keep">💾 Garder les messages</option><option value="24h">🕐 Éphémère : 24h</option><option value="7d">🕐 Éphémère : 7 jours</option></select></div>
@@ -155,7 +182,8 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 </div>
 </div>
 </div>
-
+</section>
+<section class="view hidden" id="v-cours">
 <div class="card"><h3>📚 Ajouter cours</h3>
 <div class="row"><input id="mat" placeholder="Matière (Allemand...)"><input id="chap" placeholder="Chapitre"></div>
 <textarea id="cont" placeholder="Contenu complet du cours"></textarea>
@@ -163,18 +191,21 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 <button onclick="addCourse()">Publier cours</button>
 </div>
 
-<div class="card"><h3>🗂️ Gérer cours <span class="small" id="nbcours"></span></h3>
-<p class="small">Supprimer un cours, toute une section ou toute une matière. Irréversible, aussi effacé de Supabase.</p>
+<div class="card"><h3>📋 Liste cours <span class="small" id="nbcours"></span></h3>
 <div class="row"><input id="qc2" placeholder="🔍 Rechercher cours..." oninput="renderCoursesAdmin()"><select id="fmat" onchange="renderCoursesAdmin()"><option value="">Toutes matières</option></select></div>
-<div class="row"><select id="delSec"></select><button class="red" onclick="deleteSectionUI()">🗑️ Supprimer section</button></div>
-<div class="row"><select id="delMat"></select><button class="red" onclick="deleteMatiereUI()">🗑️ Supprimer matière</button></div>
 <div class="tablewrap"><table><thead><tr><th>Matière</th><th>Chapitre</th><th>Section</th><th>Trim.</th><th>Action</th></tr></thead><tbody id="tcours"></tbody></table></div>
-<p class="small">⚠️ Si la suppression échoue : exécute <b>supabase/allow_delete_courses.sql</b> dans Supabase SQL Editor (1 fois).</p>
 </div>
+
+<div class="card"><h3>🗑️ Suppressions groupées</h3>
+<p class="small">Toute une section ou toute une matière d'un coup. Irréversible.</p>
+<div class="row"><select id="delSec"></select><button class="red" onclick="deleteSectionUI()">Supprimer section</button></div>
+<div class="row"><select id="delMat"></select><button class="red" onclick="deleteMatiereUI()">Supprimer matière</button></div>
+</div>
+</section>
 </main>
 <div id="toast"></div>
 <div id="modal" class="hidden"><div class="mbox"><h3 id="mtitle">⚠️ Confirmer ?</h3><p class="small" id="mtext"></p><div class="row"><button class="red" id="mok">Oui</button><button class="ghost" onclick="closeModal()">Non</button></div></div></div>
-<div class="ver">3AS Admin v1.10 — suppression élèves + cours ✅</div>
+<div class="ver">3AS Admin v1.11 — menu catégories ✅</div>
 
 <script>
 window.__booted=false;
@@ -215,8 +246,8 @@ async function ping(){if(!sb){setNet(false);return}try{const r=await sb.from('co
 function init(){
  const u=cfg().url,k=cfg().key;
  if(!u||!k){setNet(false);return}
- try{sb=window.supabase.createClient(u,k)}catch(e){return}
- refresh();
+  try{sb=window.supabase.createClient(u,k)}catch(e){return}
+  refresh();route();
   try{sb.channel('adm').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},()=>loadMsgs(true)).on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>loadStudents()).on('postgres_changes',{event:'*',schema:'public',table:'courses'},()=>loadCourses()).subscribe()}catch(e){}
  setInterval(()=>loadMsgs(true),12000);setInterval(ping,30000);ping();
 }
@@ -224,8 +255,9 @@ function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='3AS-';crypt
 async function refresh(){await loadRetention();await loadStudents();await loadMsgs(false);await loadCourses();}
 async function loadStudents(){
  const {data}=await sb.from('students').select('*').order('date_creation',{ascending:false});
- students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
- render();renderInbox();
+  students=data||[];$('n1').textContent=students.length;$('n2').textContent=students.filter(s=>s.statut_actif).length;
+  if($('m-n1'))$('m-n1').textContent=students.length;
+  render();renderInbox();
 }
 function render(){
  const q=($('q').value||'').toLowerCase();
@@ -273,7 +305,8 @@ async function loadMsgs(live){
  if(!sb)return;
  const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(300);
  msgs=(data||[]).reverse();
- $('n3').textContent=(data||[]).filter(m=>m.receiver_id===ADMIN_ID&&!m.lu).length;
+  $('n3').textContent=(data||[]).filter(m=>m.receiver_id===ADMIN_ID&&!m.lu).length;
+  if($('m-n3'))$('m-n3').textContent=$('n3').textContent==='0'?'':$('n3').textContent;
  renderInbox();if(cur)renderConv(live);
  const cut=cutoff();
  if(cut){const oldm=msgs.filter(m=>new Date(m.timestamp).getTime()<cut);for(const m of oldm){await sb.from('messages').delete().eq('id',m.id)}if(oldm.length){const {data}=await sb.from('messages').select('*').order('timestamp',{ascending:false}).limit(300);msgs=(data||[]).reverse();renderInbox();if(cur)renderConv(live)}}
@@ -292,9 +325,24 @@ function renderInbox(){
   <div>${u?`<div class="cbadge">${u}</div>`:''}<div class="small">${l?fmtT(l.timestamp):''}</div></div></div>`;
  }).join('')||'<p class="small" style="padding:10px">Aucun élève.</p>';
 }
-window.addEventListener('hashchange',()=>{const m=(location.hash||'').match(/^#\/chat\/(.+)$/);if(m)openChat(m[1],true);else{cur=null;renderInbox();backInbox()}});
+let VIEW='home';
+function toggleMenu(open){$('drawer').classList.toggle('closed',!open);$('drawerOv').classList.toggle('hidden',!open)}
+function go(v){toggleMenu(false);const h=v==='home'?'#/':'#/'+v;if(location.hash===h)route();else location.hash=h}
+function showView(v){
+ VIEW=v;
+ ['home','eleves','cours','msg'].forEach(x=>{const s=$('v-'+x);if(s)s.classList.toggle('hidden',x!==v)});
+ ['home','eleves','cours','msg'].forEach(x=>{const e=$('m-'+x);if(e)e.classList.toggle('active',x===v)});
+ window.scrollTo(0,0);
+}
+function route(){
+ const h=location.hash||'#/';
+ const m=h.match(/^#\/chat\/(.+)$/);
+ if(m){showView('msg');openChat(m[1],true);return}
+ showView(h==='#/eleves'?'eleves':h==='#/cours'?'cours':h==='#/msg'?'msg':'home');
+}
+window.addEventListener('hashchange',route);
 async function openChat(id,fromHash){
- cur=id;
+ cur=id;showView('msg');
  if(!fromHash){try{location.hash='#/chat/'+id}catch(e){}}
  const s=students.find(x=>x.id===id);
  renderInbox();
@@ -330,7 +378,7 @@ async function verifyCourseDelete(res,okMsg){
 async function loadCourses(){
  if(!sb)return;
  const {data}=await sb.from('courses').select('id,matiere,chapitre,section,trimestre').order('matiere').order('chapitre');
- courses=data||[];$('n4').textContent=courses.length;renderCoursesAdmin();
+ courses=data||[];$('n4').textContent=courses.length;if($('m-n4'))$('m-n4').textContent=courses.length;renderCoursesAdmin();
 }
 function renderCoursesAdmin(){
  const q=(($('qc2')||{}).value||'').toLowerCase(),fm=($('fmat')||{}).value||'';
