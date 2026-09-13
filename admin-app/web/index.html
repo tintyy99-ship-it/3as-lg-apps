@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <link rel="icon" href="data:,">
 <title>3AS LG Admin</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -106,7 +107,15 @@ td,th{padding:8px;border-bottom:1px solid #334155;text-align:left}
 .mbox .row{display:flex;gap:8px}
 .ver{font-size:11px;color:#64748b;text-align:center;margin-top:14px}
 /* ---- Menu hamburger + vues par catégorie ---- */
-header{display:flex;align-items:center;gap:10px;text-align:left}
+header{display:flex;align-items:center;gap:10px;text-align:left;padding-top:calc(14px + env(safe-area-inset-top, 0px));padding-left:calc(14px + env(safe-area-inset-left, 0px));padding-right:calc(14px + env(safe-area-inset-right, 0px))}
+main{padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px))}
+#drawer{padding-bottom:env(safe-area-inset-bottom, 0px)}
+#toast{bottom:calc(18px + env(safe-area-inset-bottom, 0px))}
+/* ---- Formulaire inscription compact ---- */
+.fcompact input,.fcompact select{padding:8px;font-size:14px;margin:4px 0}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.frow>*{min-width:0}
+@media(max-width:360px){.frow{grid-template-columns:1fr}}
 header h2{flex:1;text-align:center;font-size:20px}
 #burger{width:auto;padding:8px 14px;font-size:20px;margin:0;flex-shrink:0}
 #drawerOv{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:190}
@@ -156,10 +165,9 @@ header h2{flex:1;text-align:center;font-size:20px}
 </section>
 <section class="view hidden" id="v-eleves">
 
-<div class="card"><h3>➕ Créer compte candidat (code généré auto)</h3>
-<p class="small">Aucun code prêt à l'emploi : le code de référence est généré automatiquement après la création.</p>
-<div class="row"><input id="nom" placeholder="Nom"><input id="prenom" placeholder="Prénom"></div>
-<div class="row"><input id="email" placeholder="Email (opt)"><select id="duree"><option value="30">30 jours</option><option value="90" selected>90 jours</option><option value="180">180 jours</option><option value="365">1 an</option></select></div>
+<div class="card fcompact"><h3>➕ Créer compte candidat</h3>
+<div class="frow"><input id="nom" placeholder="Nom"><input id="prenom" placeholder="Prénom"></div>
+<div class="frow"><input id="email" placeholder="Email (opt)"><select id="duree"><option value="30">30 jours</option><option value="90" selected>90 jours</option><option value="180">180 jours</option><option value="365">1 an</option></select></div>
 <button class="green" onclick="createStudent()">Créer le compte → Générer code auto</button>
 <p id="newcode"></p>
 </div>
@@ -169,7 +177,7 @@ header h2{flex:1;text-align:center;font-size:20px}
 </div>
 </section>
 <section class="view hidden" id="v-msg">
-<div class="card"><h3>💬 Messagerie <span class="small">style Messenger — clique une conversation</span></h3>
+<div class="card"><h3>💬 Messagerie</h3>
 <div class="row"><button class="red" onclick="askDeleteAll()">🗑️ Tout supprimer (2 côtés)</button></div>
 <div class="row"><select id="ret" onchange="saveRetention()"><option value="keep">💾 Garder les messages</option><option value="24h">🕐 Éphémère : 24h</option><option value="7d">🕐 Éphémère : 7 jours</option></select></div>
 <div class="msgwrap">
@@ -205,7 +213,7 @@ header h2{flex:1;text-align:center;font-size:20px}
 </main>
 <div id="toast"></div>
 <div id="modal" class="hidden"><div class="mbox"><h3 id="mtitle">⚠️ Confirmer ?</h3><p class="small" id="mtext"></p><div class="row"><button class="red" id="mok">Oui</button><button class="ghost" onclick="closeModal()">Non</button></div></div></div>
-<div class="ver">3AS Admin v1.11 — menu catégories ✅</div>
+<div class="ver">3AS Admin v1.12</div>
 
 <script>
 window.__booted=false;
@@ -288,12 +296,12 @@ async function reprendre(id){const {error}=await sb.from('students').update({sta
 async function supprimerEleve(id){
  const s=students.find(x=>x.id===id);
  const label=s?((s.prenom||'')+' '+(s.nom||'')+' ('+(s.code_reference||'')+')'):'cet élève';
- askConfirm('Supprimer définitivement '+label+' ? Compte + messages effacés de Supabase. Irréversible !',async()=>{
+ askConfirm('Supprimer définitivement '+label+' ? Compte + messages effacés. Irréversible !',async()=>{
   try{await sb.from('messages').delete().eq('student_id',id)}catch(e){}
   const {error}=await sb.from('students').delete().eq('id',id);
   if(error)return toast('❌ '+error.message,false);
   if(cur===id){cur=null;try{if((location.hash||'').startsWith('#/chat/'))location.hash='#/'}catch(e){}$('chathead').innerHTML='<span class="small">← Sélectionne un élève dans la liste.</span>';$('conv').innerHTML='';backInbox()}
-  toast('🗑️ Élève supprimé de Supabase ✅');refresh();
+  toast('🗑️ Élève supprimé ✅');refresh();
  })
 }
 /* ---------- MESSAGERIE MESSENGER ---------- */
@@ -372,7 +380,7 @@ async function send(){if(!cur){toast('Choisis une conversation',false);return}co
 async function addCourse(){if(!$('mat').value||!$('chap').value||!$('cont').value){toast('Matière+Chapitre+Contenu requis',false);return}const {error}=await sb.from('courses').insert({matiere:$('mat').value,chapitre:$('chap').value,contenu_cours:$('cont').value,explications_simplifiees:$('simp').value,niveau:'3AS LG'});if(error){toast(error.message,false);return}toast('📚 Cours publié ✅');$('mat').value=$('chap').value=$('cont').value=$('simp').value='';refresh()}
 async function verifyCourseDelete(res,okMsg){
  if(res.error)return toast('❌ '+res.error.message,false);
- if(!res.data||!res.data.length)return toast('⚠️ Suppression bloquée par Supabase (RLS). Exécute supabase/allow_delete_courses.sql dans SQL Editor.',false);
+ if(!res.data||!res.data.length)return toast('⚠️ Suppression impossible. Vérifie la connexion puis réessaie.',false);
  toast(okMsg);refresh();
 }
 async function loadCourses(){
@@ -396,15 +404,15 @@ function renderCoursesAdmin(){
 }
 async function deleteCourse(id){
  const c=courses.find(x=>x.id===id);
- askConfirm('Supprimer le cours « '+(c?c.chapitre:'?')+' » ('+(c?c.matiere:'')+') de Supabase ? Irréversible !',async()=>{
+ askConfirm('Supprimer le cours « '+(c?c.chapitre:'?')+' » ('+(c?c.matiere:'')+') ? Irréversible !',async()=>{
   const res=await sb.from('courses').delete().eq('id',id).select('id');
-  verifyCourseDelete(res,'🗑️ Cours supprimé de Supabase ✅');
+  verifyCourseDelete(res,'🗑️ Cours supprimé ✅');
  })
 }
 function deleteSectionUI(){
  const sec=($('delSec')||{}).value;if(!sec){toast('Aucune section',false);return}
  const n=courses.filter(c=>c.section===sec).length;
- askConfirm('Supprimer toute la section « '+sec+' » ('+n+' cours) de Supabase ? Irréversible !',async()=>{
+ askConfirm('Supprimer toute la section « '+sec+' » ('+n+' cours) ? Irréversible !',async()=>{
   const res=await sb.from('courses').delete().eq('section',sec).select('id');
   verifyCourseDelete(res,'🗑️ Section « '+sec+' » supprimée ('+(res.data||[]).length+' cours) ✅');
  })
@@ -412,7 +420,7 @@ function deleteSectionUI(){
 function deleteMatiereUI(){
  const mat=($('delMat')||{}).value;if(!mat){toast('Aucune matière',false);return}
  const n=courses.filter(c=>c.matiere===mat).length;
- askConfirm('Supprimer toute la matière « '+mat+' » ('+n+' cours) de Supabase ? Irréversible !',async()=>{
+ askConfirm('Supprimer toute la matière « '+mat+' » ('+n+' cours) ? Irréversible !',async()=>{
   const res=await sb.from('courses').delete().eq('matiere',mat).select('id');
   verifyCourseDelete(res,'🗑️ Matière « '+mat+' » supprimée ('+(res.data||[]).length+' cours) ✅');
  })

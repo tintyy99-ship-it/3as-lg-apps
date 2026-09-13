@@ -84,6 +84,20 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(wv);
+        // Zones systeme (notch, barre notifications/batterie, barre navigation) :
+        // la WebView ne dessine pas sous les barres (Android 15 edge-to-edge).
+        try {
+            getWindow().setStatusBarColor(0xFF000000);
+            getWindow().setNavigationBarColor(0xFF000000);
+        } catch (Exception ignored) {}
+        wv.setOnApplyWindowInsetsListener((v, insets) -> {
+            v.setPadding(
+                insets.getSystemWindowInsetLeft(),
+                insets.getSystemWindowInsetTop(),
+                insets.getSystemWindowInsetRight(),
+                insets.getSystemWindowInsetBottom());
+            return insets.consumeSystemWindowInsets();
+        });
         if (savedInstanceState != null) {
             wv.restoreState(savedInstanceState);
         } else {

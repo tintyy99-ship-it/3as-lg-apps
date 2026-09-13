@@ -120,24 +120,24 @@ jobs:
           echo "admin: $ADMIN_ICON"
           echo "ICONES OK"
 
-      - name: Rename APKs/AABs (v1.11)
+      - name: Rename APKs/AABs (v1.12)
         run: |
-          cp android/eleve/build/outputs/apk/debug/eleve-debug.apk 3AS-LG-Eleve-v1.11-debug.apk
-          cp android/admin/build/outputs/apk/debug/admin-debug.apk 3AS-LG-Admin-v1.11-debug.apk
-          cp android/eleve/build/outputs/apk/release/eleve-release.apk 3AS-LG-Eleve-v1.11.apk
-          cp android/admin/build/outputs/apk/release/admin-release.apk 3AS-LG-Admin-v1.11.apk
-          cp android/eleve/build/outputs/bundle/release/eleve-release.aab 3AS-LG-Eleve-v1.11.aab
-          cp android/admin/build/outputs/bundle/release/admin-release.aab 3AS-LG-Admin-v1.11.aab
+          cp android/eleve/build/outputs/apk/debug/eleve-debug.apk 3AS-LG-Eleve-v1.12-debug.apk
+          cp android/admin/build/outputs/apk/debug/admin-debug.apk 3AS-LG-Admin-v1.12-debug.apk
+          cp android/eleve/build/outputs/apk/release/eleve-release.apk 3AS-LG-Eleve-v1.12.apk
+          cp android/admin/build/outputs/apk/release/admin-release.apk 3AS-LG-Admin-v1.12.apk
+          cp android/eleve/build/outputs/bundle/release/eleve-release.aab 3AS-LG-Eleve-v1.12.aab
+          cp android/admin/build/outputs/bundle/release/admin-release.aab 3AS-LG-Admin-v1.12.aab
           ls -la *.apk *.aab
 
       - name: Upload APKs/AABs
         uses: actions/upload-artifact@v4
         with:
-          name: apks-aab-3as-lg-v1.11
+          name: apks-aab-3as-lg-v1.12
           path: |
-            3AS-LG-Eleve-v1.11-debug.apk
-            3AS-LG-Admin-v1.11-debug.apk
-            3AS-LG-Eleve-v1.11.apk
-            3AS-LG-Admin-v1.11.apk
-            3AS-LG-Eleve-v1.11.aab
-            3AS-LG-Admin-v1.11.aab
+            3AS-LG-Eleve-v1.12-debug.apk
+            3AS-LG-Admin-v1.12-debug.apk
+            3AS-LG-Eleve-v1.12.apk
+            3AS-LG-Admin-v1.12.apk
+            3AS-LG-Eleve-v1.12.aab
+            3AS-LG-Admin-v1.12.aab
