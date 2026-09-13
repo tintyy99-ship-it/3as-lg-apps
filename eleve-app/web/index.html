@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#1e40af">
 <link rel="icon" href="data:,">
 <title>3AS LG — التلميذ</title>
@@ -119,6 +119,93 @@ header{position:sticky}
 .drow .cnt{margin-inline-start:auto;font-size:12px;color:var(--mut)}
 .dcoef{font-size:11px;background:var(--me);color:#fff;border-radius:8px;padding:1px 7px}
 .archnote{background:var(--them);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--mut);margin:4px 0}
+/* ==== PATCH v1.14 — Responsive smartphones (320px → tablettes) ==== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{overflow-x:hidden;max-width:100vw}
+body{-webkit-tap-highlight-color:transparent}
+img,video{max-width:100%;height:auto}
+header h2{font-size:clamp(14px,4.4vw,20px);line-height:1.35;overflow-wrap:anywhere;min-width:0;padding:0 6px}
+header{gap:8px}
+#burger{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+/* Touch + anti-zoom : 16px mini sur inputs, 44px mini sur boutons */
+input,select,textarea{font-size:16px;max-width:100%}
+button{min-height:44px}
+main{width:100%;max-width:700px}
+.card{overflow:hidden;overflow-wrap:anywhere}
+.card h3,.card h4{overflow-wrap:anywhere;line-height:1.5}
+/* Chips matières : scroll tactile propre */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:8px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;scroll-snap-align:start;min-height:38px;max-width:78vw;overflow:hidden;text-overflow:ellipsis}
+.mdot{flex-shrink:0}
+/* Trimestres : scroll horizontal sur petits écrans */
+.trow{display:flex;gap:6px;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.trow::-webkit-scrollbar{display:none}
+.trow button{flex:1 0 auto;min-width:fit-content;white-space:nowrap;min-height:42px;padding:9px 12px}
+@media(max-width:480px){.trow button{flex:0 0 auto}}
+/* Cours : cartes plein largeur, texte qui ne déborde jamais */
+.crow{overflow-wrap:anywhere;word-break:break-word}
+.crow h4{font-size:clamp(14px,4vw,16px)}
+.badge{max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.detail{overflow-wrap:anywhere;word-break:break-word;font-size:clamp(14px,4vw,15.5px)}
+.tip{overflow-wrap:anywhere;word-break:break-word}
+/* Messagerie : hauteur dynamique + barre collée au clavier */
+.chatbox{height:42dvh;max-height:min(380px,52dvh);min-height:220px}
+.sendbar{position:sticky;bottom:0;z-index:5;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.sendbar input{flex:1;min-width:0;font-size:16px}
+.sendbar button{flex-shrink:0;min-width:52px;min-height:48px}
+.msg{overflow-wrap:anywhere;word-break:break-word}
+nav{min-height:calc(60px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:clamp(11px,3.2vw,13px);padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.unread{top:6px}
+/* Auth : compact sur petits écrans */
+.authWrap{margin:10px 8px;padding:clamp(14px,4vw,26px) clamp(10px,3vw,18px)}
+.authCard{padding:clamp(14px,4vw,20px)}
+.alogo{font-size:clamp(36px,10vw,52px)}
+.slogo{font-size:clamp(40px,12vw,64px)}
+.dlogo{font-size:clamp(28px,8vw,44px);text-align:center;padding:0 12px}
+#code{font-size:clamp(16px,5vw,19px)}
+.cta{font-size:clamp(16px,4.5vw,18px) !important}
+/* Drawer : largeur sûre + lignes tactiles */
+#drawer{width:min(285px,86vw)}
+.drow{min-height:44px}
+/* Profil / grilles */
+.themegrid{flex-wrap:wrap}
+.themegrid button{flex:1 1 30%;min-width:90px}
+/* Très petits ≤360px */
+@media(max-width:360px){
+ .card{padding:12px;margin:8px}
+ main{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+ .authWrap{margin:8px 6px}
+ .chatbox{height:38dvh;min-height:180px}
+ .msg{max-width:88%;font-size:14px}
+ .avatar{width:36px;height:36px;font-size:17px}
+ .themegrid button{flex:1 1 100%}
+}
+/* Standard ≤480px */
+@media(max-width:480px){
+ .card{padding:14px;margin:8px}
+ .sech{font-size:14px}
+}
+/* Tablettes ≥768px : confort lecture */
+@media(min-width:768px){
+ main{max-width:720px}
+ .chatbox{height:420px;max-height:420px}
+ .crow{padding:16px}
+}
+/* Paysage bas / clavier ouvert */
+@media(max-height:500px) and (orientation:landscape){
+ #splash{display:none}
+ .chatbox{height:54dvh;min-height:140px}
+ header{padding:8px}
+ nav{min-height:52px}
+ nav button{min-height:48px}
+}
+/* Accessibilité */
+button:focus-visible,input:focus-visible{outline:3px solid var(--me);outline-offset:1px}
+@media(prefers-reduced-motion:reduce){
+ *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
 </style>
 </head>
 <body>
@@ -201,9 +288,9 @@ const MAT_COEF={"الألمانية":6,"الإسبانية":6,"الإيطالي�
 const MAT_COLORS={"الألمانية":"#2563eb","الإنجليزية":"#7c3aed","الفرنسية":"#dc2626","العربية":"#059669","الإسبانية":"#ea580c","الإيطالية":"#0891b2","التاريخ":"#92400e","الجغرافيا":"#65a30d","الفلسفة":"#9333ea","العلوم الإسلامية":"#0d9488","الرياضيات":"#e11d48"};
 let LANG=localStorage.getItem('3as_lang')||'ar';
 const STR={
-ar:{hdr:"📚 الثالثة ثانوي لغات — فضاء التلميذ",sub:"دروس • شروح • مراسلة",lgh:"🔑 الدخول",lgp:"رمز الدخول الخاص بك يعطيه لك الأستاذ المشرف.",lgtg:"💬 دعم تيليغرام : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"دخول ✨",e_net:"مشكلة في الاتصال، تحقق من الإنترنت وحاول مجددا.",e_empty:"أدخل الرمز من فضلك.",e_bad:"الرمز غير صحيح.",e_susp:"⛔ تم تجميد هذا الرمز. راسل الدعم.",e_exp:"انتهت صلاحية الرمز. اطلب التمديد عبر تيليغرام.",hello:"مرحبا",exp:"ينتهي: ",ch:"📖 مواد السنة الثالثة لغات",qph:"🔍 ابحث في الدروس…",all:"الكل",t1:"الفصل الأول",t2:"الفصل الثاني",t3:"الفصل الثالث",nomatch:"لا توجد دروس مطابقة.",back:"→ رجوع للدروس",full:"اضغط لعرض الدرس الكامل مع الشرح ←",tip:"الزبدة :",chn:"الأستاذ المشرف",chs:"دائما معك 🤝",eph:"🕐 الرسائل مؤقتة وتُحذف تلقائيا",nomsg:"لا رسائل بعد. اكتب للأستاذ 👋",txtph:"اكتب للأستاذ…",senderr:"مشكلة في الاتصال.",cph:"👤 حسابي",code:"الرمز:",valid:"الصلاحية:",lngh:"🌍 اللغة",thh:"🎨 المظهر",thl:"☀️ فاتح",thd:"🌙 داكن",tha:"📱 النظام",cptg:"مراسلة الدعم تيليغرام",n1:"📖 الدروس",n2:"💬 المراسلة",n3:"👤 حسابي",drm:"المواد",drt:"الفصول",coef:"المعامل",arch:"📦 محفوظ للفائدة — خارج برنامج اللغات 2026",out:"🚪 خروج",lessons:"درسا",notfound:"⚠️ الدرس غير موجود. ارجع للقائمة.",ver:"الإصدار 1.12"},
-fr:{hdr:"📚 3AS Langues — Espace Élève",sub:"Cours • Explications • Messagerie",lgh:"🔑 Connexion",lgp:"Ton code d'accès te donne ton professeur.",lgtg:"💬 Support Telegram : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Entrer ✨",e_net:"Problème de connexion, vérifie internet.",e_empty:"Entre ton code.",e_bad:"Code invalide.",e_susp:"⛔ Code suspendu. Contacte le support.",e_exp:"Code expiré. Demande une prolongation via Telegram.",hello:"Salut",exp:"Expire : ",ch:"📖 Matières 3AS Langues",qph:"🔍 Rechercher un cours…",all:"Toutes",t1:"Trimestre 1",t2:"Trimestre 2",t3:"Trimestre 3",nomatch:"Aucun cours trouvé.",back:"→ Retour aux cours",full:"Clique pour le cours complet ←",tip:"L'essentiel :",chn:"Professeur",chs:"Toujours avec toi 🤝",eph:"🕐 Messages éphémères (suppression auto)",nomsg:"Aucun message. Écris au prof 👋",txtph:"Écris au prof…",senderr:"Problème de connexion.",cph:"👤 Mon compte",code:"Code :",valid:"Validité :",lngh:"🌍 Langue",thh:"🎨 Thème",thl:"☀️ Clair",thd:"🌙 Sombre",tha:"📱 Système",cptg:"Contacter le support Telegram",n1:"📖 Cours",n2:"💬 Messages",n3:"👤 Compte",drm:"Matières",drt:"Trimestres",coef:"Coef",arch:"📦 Archive — hors programme langues 2026",out:"🚪 Déconnexion",lessons:"cours",notfound:"⚠️ Cours introuvable. Reviens à la liste.",ver:"Version 1.12"},
-en:{hdr:"📚 3AS Languages — Student Space",sub:"Lessons • Explanations • Chat",lgh:"🔑 Login",lgp:"Your access code is given by your teacher.",lgtg:"💬 Telegram support: @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Enter ✨",e_net:"Connection issue, check internet.",e_empty:"Enter your code.",e_bad:"Invalid code.",e_susp:"⛔ Code suspended. Contact support.",e_exp:"Code expired. Ask for renewal via Telegram.",hello:"Hi",exp:"Expires: ",ch:"📖 3AS Languages subjects",qph:"🔍 Search lessons…",all:"All",t1:"Term 1",t2:"Term 2",t3:"Term 3",nomatch:"No lessons found.",back:"→ Back to lessons",full:"Tap for the full lesson ←",tip:"Key point:",chn:"Teacher",chs:"Always with you 🤝",eph:"🕐 Ephemeral messages (auto-delete)",nomsg:"No messages yet. Write to the teacher 👋",txtph:"Write to the teacher…",senderr:"Connection issue.",cph:"👤 My account",code:"Code:",valid:"Validity:",lngh:"🌍 Language",thh:"🎨 Theme",thl:"☀️ Light",thd:"🌙 Dark",tha:"📱 System",cptg:"Contact Telegram support",n1:"📖 Lessons",n2:"💬 Chat",n3:"👤 Account",drm:"Subjects",drt:"Terms",coef:"Coef",arch:"📦 Archive — off 2026 languages program",out:"🚪 Logout",lessons:"lessons",notfound:"⚠️ Lesson not found. Back to list.",ver:"Version 1.12"}};
+ar:{hdr:"📚 الثالثة ثانوي لغات — فضاء التلميذ",sub:"دروس • شروح • مراسلة",lgh:"🔑 الدخول",lgp:"رمز الدخول الخاص بك يعطيه لك الأستاذ المشرف.",lgtg:"💬 دعم تيليغرام : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"دخول ✨",e_net:"مشكلة في الاتصال، تحقق من الإنترنت وحاول مجددا.",e_empty:"أدخل الرمز من فضلك.",e_bad:"الرمز غير صحيح.",e_susp:"⛔ تم تجميد هذا الرمز. راسل الدعم.",e_exp:"انتهت صلاحية الرمز. اطلب التمديد عبر تيليغرام.",hello:"مرحبا",exp:"ينتهي: ",ch:"📖 مواد السنة الثالثة لغات",qph:"🔍 ابحث في الدروس…",all:"الكل",t1:"الفصل الأول",t2:"الفصل الثاني",t3:"الفصل الثالث",nomatch:"لا توجد دروس مطابقة.",back:"→ رجوع للدروس",full:"اضغط لعرض الدرس الكامل مع الشرح ←",tip:"الزبدة :",chn:"الأستاذ المشرف",chs:"دائما معك 🤝",eph:"🕐 الرسائل مؤقتة وتُحذف تلقائيا",nomsg:"لا رسائل بعد. اكتب للأستاذ 👋",txtph:"اكتب للأستاذ…",senderr:"مشكلة في الاتصال.",cph:"👤 حسابي",code:"الرمز:",valid:"الصلاحية:",lngh:"🌍 اللغة",thh:"🎨 المظهر",thl:"☀️ فاتح",thd:"🌙 داكن",tha:"📱 النظام",cptg:"مراسلة الدعم تيليغرام",n1:"📖 الدروس",n2:"💬 المراسلة",n3:"👤 حسابي",drm:"المواد",drt:"الفصول",coef:"المعامل",arch:"📦 محفوظ للفائدة — خارج برنامج اللغات 2026",out:"🚪 خروج",lessons:"درسا",notfound:"⚠️ الدرس غير موجود. ارجع للقائمة.",ver:"الإصدار 1.14"},
+fr:{hdr:"📚 3AS Langues — Espace Élève",sub:"Cours • Explications • Messagerie",lgh:"🔑 Connexion",lgp:"Ton code d'accès te donne ton professeur.",lgtg:"💬 Support Telegram : @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Entrer ✨",e_net:"Problème de connexion, vérifie internet.",e_empty:"Entre ton code.",e_bad:"Code invalide.",e_susp:"⛔ Code suspendu. Contacte le support.",e_exp:"Code expiré. Demande une prolongation via Telegram.",hello:"Salut",exp:"Expire : ",ch:"📖 Matières 3AS Langues",qph:"🔍 Rechercher un cours…",all:"Toutes",t1:"Trimestre 1",t2:"Trimestre 2",t3:"Trimestre 3",nomatch:"Aucun cours trouvé.",back:"→ Retour aux cours",full:"Clique pour le cours complet ←",tip:"L'essentiel :",chn:"Professeur",chs:"Toujours avec toi 🤝",eph:"🕐 Messages éphémères (suppression auto)",nomsg:"Aucun message. Écris au prof 👋",txtph:"Écris au prof…",senderr:"Problème de connexion.",cph:"👤 Mon compte",code:"Code :",valid:"Validité :",lngh:"🌍 Langue",thh:"🎨 Thème",thl:"☀️ Clair",thd:"🌙 Sombre",tha:"📱 Système",cptg:"Contacter le support Telegram",n1:"📖 Cours",n2:"💬 Messages",n3:"👤 Compte",drm:"Matières",drt:"Trimestres",coef:"Coef",arch:"📦 Archive — hors programme langues 2026",out:"🚪 Déconnexion",lessons:"cours",notfound:"⚠️ Cours introuvable. Reviens à la liste.",ver:"Version 1.14"},
+en:{hdr:"📚 3AS Languages — Student Space",sub:"Lessons • Explanations • Chat",lgh:"🔑 Login",lgp:"Your access code is given by your teacher.",lgtg:"💬 Telegram support: @Roqaya_2328",codeph:"3AS-XXXXXX",go:"Enter ✨",e_net:"Connection issue, check internet.",e_empty:"Enter your code.",e_bad:"Invalid code.",e_susp:"⛔ Code suspended. Contact support.",e_exp:"Code expired. Ask for renewal via Telegram.",hello:"Hi",exp:"Expires: ",ch:"📖 3AS Languages subjects",qph:"🔍 Search lessons…",all:"All",t1:"Term 1",t2:"Term 2",t3:"Term 3",nomatch:"No lessons found.",back:"→ Back to lessons",full:"Tap for the full lesson ←",tip:"Key point:",chn:"Teacher",chs:"Always with you 🤝",eph:"🕐 Ephemeral messages (auto-delete)",nomsg:"No messages yet. Write to the teacher 👋",txtph:"Write to the teacher…",senderr:"Connection issue.",cph:"👤 My account",code:"Code:",valid:"Validity:",lngh:"🌍 Language",thh:"🎨 Theme",thl:"☀️ Light",thd:"🌙 Dark",tha:"📱 System",cptg:"Contact Telegram support",n1:"📖 Lessons",n2:"💬 Chat",n3:"👤 Account",drm:"Subjects",drt:"Terms",coef:"Coef",arch:"📦 Archive — off 2026 languages program",out:"🚪 Logout",lessons:"lessons",notfound:"⚠️ Lesson not found. Back to list.",ver:"Version 1.14"}};
 function t(k){return (STR[LANG]&&STR[LANG][k])||STR.ar[k]||k}
 function setLang(l){LANG=l;localStorage.setItem('3as_lang',l);applyLang()}
 function applyLang(){document.documentElement.lang=LANG;document.documentElement.dir=(LANG==='ar')?'rtl':'ltr';

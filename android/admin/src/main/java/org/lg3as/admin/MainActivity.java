@@ -84,20 +84,38 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(wv);
-        // Zones systeme (notch, barre notifications/batterie, barre navigation) :
-        // la WebView ne dessine pas sous les barres (Android 15 edge-to-edge).
+        // ECRAN : la WebView est réduite aux marges des barres système pour que
+        // le contenu ne passe JAMAIS sous le poinçon caméra, les notifications,
+        // la batterie/wifi (haut) ni la barre de navigation (bas). Fonctionne
+        // sur tous les smartphones + à la rotation (nouveaux insets = relayout).
         try {
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFF000000));
             getWindow().setStatusBarColor(0xFF000000);
             getWindow().setNavigationBarColor(0xFF000000);
+            android.view.View decor = getWindow().getDecorView();
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                android.view.WindowInsetsController c = decor.getWindowInsetsController();
+                if (c != null) { c.setAppearanceLightStatusBars(false); c.setAppearanceLightNavigationBars(false); }
+            } else {
+                int f = decor.getSystemUiVisibility();
+                f &= ~(android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+                decor.setSystemUiVisibility(f);
+            }
         } catch (Exception ignored) {}
         wv.setOnApplyWindowInsetsListener((v, insets) -> {
-            v.setPadding(
-                insets.getSystemWindowInsetLeft(),
-                insets.getSystemWindowInsetTop(),
-                insets.getSystemWindowInsetRight(),
-                insets.getSystemWindowInsetBottom());
+            try {
+                android.view.ViewGroup.MarginLayoutParams lp =
+                    (android.view.ViewGroup.MarginLayoutParams) v.getLayoutParams();
+                lp.setMargins(
+                    insets.getSystemWindowInsetLeft(),
+                    insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(),
+                    insets.getSystemWindowInsetBottom());
+                v.setLayoutParams(lp);
+            } catch (Exception ignored) {}
             return insets.consumeSystemWindowInsets();
         });
+        try { wv.requestApplyInsets(); } catch (Exception ignored) {}
         if (savedInstanceState != null) {
             wv.restoreState(savedInstanceState);
         } else {
